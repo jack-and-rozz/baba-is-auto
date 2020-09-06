@@ -72,7 +72,6 @@ bool RuleManager::HasProperty(const std::vector<ObjectType>& types,
     for (auto type : types)
     {
         type = ConvertIconToText(type);
-
         for (auto& rule : m_rules)
         {
             if (std::get<0>(rule.objects).HasType(type) &&
