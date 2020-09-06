@@ -225,6 +225,15 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
 
     if (m_ruleManager.HasProperty(types, ObjectType::PUSH))
     {
+        // DEBUG
+        // std::cout << "MoveText - types: ";
+	// for (auto &t: types){
+	//   std::cout << static_cast<int>(t) << " "; 
+	// }
+	// std::cout << "HasProperty: PUSH " << m_ruleManager.HasProperty(types, ObjectType::PUSH) << std::endl;
+
+        // std::cout << "PUSH! " << m_map.At(_x, _y).HasTextType() << std::endl;
+
         auto rules = m_ruleManager.GetRules(ObjectType::PUSH);
 
         for (auto& rule : rules)
@@ -233,13 +242,15 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
             ProcessMove(_x, _y, dir, ConvertTextToIcon(nounType));
         }
     }
-    else if (m_ruleManager.HasProperty(types, ObjectType::SINK))
-    {
-        m_map.RemoveObject(x, y, type);
-        return;
-    }
     else if (m_map.At(_x, _y).HasTextType())
     {
+        // DEBUG
+        // std::cout << "MoveText - types: ";
+    	// for (auto &t: types){
+	//   std::cout << static_cast<int>(t) << " "; 
+	// }
+	// std::cout << std::endl;
+
         ProcessMove(_x, _y, dir, types[0]);
     }
 
@@ -247,6 +258,13 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
     {
 	m_map.AddObject(_x, _y, type);
 	m_map.RemoveObject(x, y, type);
+    }
+
+    const std::vector<ObjectType> tgt_types_after_move = m_map.At(_x, _y).GetTypes();
+    if (m_ruleManager.HasProperty(tgt_types_after_move, ObjectType::SINK)){
+    	for (auto &t: tgt_types_after_move){
+	  m_map.RemoveObject(_x, _y, t);
+	}
     }
 }
 
