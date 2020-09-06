@@ -10,6 +10,7 @@
 #include <baba-is-auto/Enums/GameEnums.hpp>
 
 #include <vector>
+#include <iostream>
 
 namespace baba_is_auto
 {
@@ -57,6 +58,15 @@ class Object
     //! Checks the object has specific type.
     //! \param type An object type to check.
     //! \return The flag indicates that the object has specific type.
+    /* 
+       *Note*
+       This function does not support properties induced by rules. 
+       e.g., Even if there is a rule "WATER IS SINK" and ICON_WATER is at (x, y), 
+       Map.At(x, y).HasType(ObjectType::SINK) returns false.
+       In contrast, 
+       RuleManager.HasProperty(MAP.At(x, y).GetTypes(), ObjectType::SINK) 
+       returns true.
+     */
     bool HasType(ObjectType type) const;
 
     //! Checks the object has text type.

@@ -235,8 +235,6 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
     }
     else if (m_ruleManager.HasProperty(types, ObjectType::SINK))
     {
-        std::cout << m_map.At(_x, _y).HasType(ObjectType::SINK)
-		  << std::endl;
         m_map.RemoveObject(x, y, type);
         return;
     }
