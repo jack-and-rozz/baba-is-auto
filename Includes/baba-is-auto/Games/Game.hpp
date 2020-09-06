@@ -12,6 +12,7 @@
 #include <baba-is-auto/Rules/RuleManager.hpp>
 
 #include <string>
+#include <iostream>
 
 namespace baba_is_auto
 {

@@ -235,6 +235,8 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
     }
     else if (m_ruleManager.HasProperty(types, ObjectType::SINK))
     {
+        std::cout << m_map.At(_x, _y).HasType(ObjectType::SINK)
+		  << std::endl;
         m_map.RemoveObject(x, y, type);
         return;
     }
@@ -243,7 +245,7 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
         ProcessMove(_x, _y, dir, types[0]);
     }
 
-    if ((x != _x) && (y != _y))
+    if ((x != _x) || (y != _y))
     {
 	m_map.AddObject(_x, _y, type);
 	m_map.RemoveObject(x, y, type);
