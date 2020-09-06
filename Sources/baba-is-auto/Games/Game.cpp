@@ -243,8 +243,11 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
         ProcessMove(_x, _y, dir, types[0]);
     }
 
-    m_map.AddObject(_x, _y, type);
-    m_map.RemoveObject(x, y, type);
+    if ((x != _x) && (y != _y))
+    {
+	m_map.AddObject(_x, _y, type);
+	m_map.RemoveObject(x, y, type);
+    }
 }
 
 void Game::CheckPlayState()
