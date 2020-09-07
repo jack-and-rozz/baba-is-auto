@@ -89,6 +89,7 @@ class Object
 
  private:
     std::vector<ObjectType> m_types;
+    // std::vector<ObjectType> m_directions;
 };
 }  // namespace baba_is_auto
 

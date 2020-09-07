@@ -222,8 +222,8 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
     _y += dy;
 
     const std::vector<ObjectType> types = m_map.At(_x, _y).GetTypes();
-
-    if (m_map.At(_x, _y).HasTextType())
+    // Textが他のタイルと重ならないことを想定している？
+    if (m_map.At(_x, _y).HasTextType()) 
     {
         ProcessMove(_x, _y, dir, types[0]);
     }
@@ -252,7 +252,7 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
     }
 }
 
-void Game::CheckPlayState()
+void Game::CheckPla yState()
 {
     const auto youRules = m_ruleManager.GetRules(ObjectType::YOU);
     if (youRules.empty())

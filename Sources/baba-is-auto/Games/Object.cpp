@@ -20,7 +20,7 @@ bool Object::operator==(const Object& rhs) const
     return m_types == rhs.m_types;
 }
 
-void Object::Add(ObjectType type)
+void Object::Add(ObjectType type, Direction dir = Direction::DOWN)
 {
     if (m_types.size() == 1 && m_types.at(0) == ObjectType::ICON_EMPTY)
     {
