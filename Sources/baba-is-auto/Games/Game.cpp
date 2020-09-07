@@ -252,7 +252,7 @@ void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
     }
 }
 
-void Game::CheckPla yState()
+void Game::CheckPlayState()
 {
     const auto youRules = m_ruleManager.GetRules(ObjectType::YOU);
     if (youRules.empty())
