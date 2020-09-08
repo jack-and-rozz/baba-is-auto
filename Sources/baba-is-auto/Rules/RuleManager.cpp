@@ -18,6 +18,10 @@ void RuleManager::AddRule(const Rule& rule)
 
 void RuleManager::RemoveRule(const Rule& rule)
 {
+    /*
+      Note (letra418): 
+      Removing all the duplicated rules and removing only one should be distinguished?
+     */
     const auto iter = std::find(m_rules.begin(), m_rules.end(), rule);
     if (iter != m_rules.end())
     {
@@ -30,15 +34,20 @@ void RuleManager::ClearRules()
     m_rules.clear();
 }
 
+std::vector<Rule> RuleManager::GetAllRules() const
+{
+    return m_rules;
+}
+
 std::vector<Rule> RuleManager::GetRules(ObjectType type) const
 {
     std::vector<Rule> ret;
 
     for (auto& rule : m_rules)
     {
-        if (std::get<0>(rule.objects).HasType(type) ||
-            std::get<1>(rule.objects).HasType(type) ||
-            std::get<2>(rule.objects).HasType(type))
+        if ((rule.GetSubject() == type) ||
+            (rule.GetOperator() == type) ||
+	    (rule.GetPredicate() == type))
         {
             ret.emplace_back(rule);
         }
@@ -54,15 +63,24 @@ std::size_t RuleManager::GetNumRules() const
 
 ObjectType RuleManager::FindPlayer() const
 {
+    /*
+      Notes (letra418): 
+      Currently only one type can be YOU.
+     */
+
     for (auto& rule : m_rules)
     {
-        if (std::get<2>(rule.objects).HasType(ObjectType::YOU))
+        if (rule.GetPredicate() == ObjectType::YOU)
         {
-            const ObjectType type = std::get<0>(rule.objects).GetTypes()[0];
+            const ObjectType type = rule.GetSubject();
             return ConvertTextToIcon(type);
         }
     }
 
+    /*
+      Notes (letra418): 
+      This can cause bugs when "EMPTY IS YOU" is formed.
+     */
     return ObjectType::ICON_EMPTY;
 }
 
@@ -73,13 +91,12 @@ bool RuleManager::HasProperty(const ObjectType& type,
     auto _type = IsIconType(type) ? ConvertIconToText(type) : ObjectType::TEXT;
 
     // TEXT always has a property of PUSH
-    if ((_type == ObjectType::TEXT) && (property == ObjectType::PUSH) )
-	{
+    if ((_type == ObjectType::TEXT) && (property == ObjectType::PUSH)){
 	    return true;
 	}
     for (auto& rule : m_rules){
-	if (std::get<0>(rule.objects).HasType(_type) &&
-	    std::get<2>(rule.objects).HasType(property)){
+	if ((rule.GetSubject() == _type) &&
+	    (rule.GetPredicate() == property)){
 		return true;
 	    }
     }

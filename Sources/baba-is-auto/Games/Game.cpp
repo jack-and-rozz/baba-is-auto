@@ -8,6 +8,7 @@
 
 namespace baba_is_auto
 {
+
 Game::Game(std::string_view filename)
 {
     m_map.Load(filename);
@@ -59,7 +60,7 @@ void Game::MovePlayer(Direction dir)
     for (auto& [x, y] : positions)
     {
 	/*
-	  TODO (letra418): 
+	  Notes (letra418): 
 	  Movements made by player and by a rule of MOVE are independently processed. This can cause different results from the original.
 	  e.g.,) 
 	  - We have "BABA IS YOU", "BABA IS MOVE", and "WALL IS STOP". 
@@ -112,18 +113,24 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
         {
             return;
         }
+	// Currently an edge case is ignored where two texts are overlapping.
 
         if (m_map.At(x, y).HasNounType() && m_map.At(x + 1, y).HasVerbType() &&
             (m_map.At(x + 2, y).HasNounType() ||
              m_map.At(x + 2, y).HasPropertyType()))
-        {
-            m_ruleManager.AddRule(
-                { m_map.At(x, y), m_map.At(x + 1, y), m_map.At(x + 2, y) });
+	{
+	    auto type1 = m_map.At(x, y).GetTextTypes()[0];
+	    auto type2 = m_map.At(x + 1, y).GetTextTypes()[0];
+	    auto type3 = m_map.At(x + 2, y).GetTextTypes()[0];
 
-            m_map.At(x, y).isRule = true;
-            m_map.At(x + 1, y).isRule = true;
-            m_map.At(x + 2, y).isRule = true;
-        }
+	    Rule newRule = Rule(type1, type2, type3);
+	    m_ruleManager.AddRule(newRule);
+	    // m_ruleManager.AddRule({ type1, type2, type3 });
+
+	    m_map.At(x, y).isRule = true;
+	    m_map.At(x + 1, y).isRule = true;
+	    m_map.At(x + 2, y).isRule = true;
+	}
     }
     else if (direction == RuleDirection::VERTICAL)
     {
@@ -135,17 +142,22 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
         if (m_map.At(x, y).HasNounType() && m_map.At(x, y + 1).HasVerbType() &&
             (m_map.At(x, y + 2).HasNounType() ||
              m_map.At(x, y + 2).HasPropertyType()))
-        {
-            m_ruleManager.AddRule(
-                { m_map.At(x, y), m_map.At(x, y + 1), m_map.At(x, y + 2) });
+	{
+	    auto type1 = m_map.At(x, y).GetTextTypes()[0];
+	    auto type2 = m_map.At(x, y + 1).GetTextTypes()[0];
+	    auto type3 = m_map.At(x, y + 2).GetTextTypes()[0];
+
+	    Rule newRule = Rule(type1, type2, type3);
+	    m_ruleManager.AddRule(newRule);
+	    
+	    // m_ruleManager.AddRule({ type1, type2, type3 });
 
             m_map.At(x, y).isRule = true;
             m_map.At(x, y + 1).isRule = true;
             m_map.At(x, y + 2).isRule = true;
-        }
+	}
     }
 }
-
 
 std::tuple<int, int> GetPositionsAfterMove(std::size_t x, std::size_t y, 
 					   Direction dir)
@@ -195,8 +207,8 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 
     for (auto & type: typesOfEntitiesOnDst){
 	/*
-	  TODO (letra418): 
-	  implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
+	  Notes (letra418):
+	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
 	if (m_ruleManager.HasProperty(type, ObjectType::PUSH) && 
 	    !CanMove(_x, _y, dir, type)){
@@ -231,29 +243,6 @@ void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
     m_map.AddObject(_x, _y, typeOfEntityOnSrc);
     m_map.RemoveObject(x, y, typeOfEntityOnSrc);
     return;
-
-    // const std::vector<ObjectType> types = m_map.At(_x, _y).GetTypes();
-    // // Textが他のタイルと重ならないことを想定している？
-    // if (m_map.At(_x, _y).HasTextType()) 
-    // {
-    //     ProcessMove(_x, _y, dir, types[0]);
-    // }
-    // else if (m_ruleManager.HasProperty(types, ObjectType::PUSH))
-    // {
-    //     auto rules = m_ruleManager.GetRules(ObjectType::PUSH);
-
-    //     for (auto& rule : rules)
-    //     {
-    //         const ObjectType nounType = std::get<0>(rule.objects).GetTypes()[0];
-    //         ProcessMove(_x, _y, dir, ConvertTextToIcon(nounType)); 
-    //     }
-    // }
-
-    // if ((x != _x) || (y != _y))
-    // {
-    // 	m_map.AddObject(_x, _y, type);
-    // 	m_map.RemoveObject(x, y, type);
-    // }
 
     // const std::vector<ObjectType> tgtTypesAfterMove = m_map.At(_x, _y).GetTypes();
     // if (m_ruleManager.HasProperty(tgtTypesAfterMove, ObjectType::SINK)){
@@ -302,7 +291,7 @@ void Game::CheckPlayState()
     {
         for (auto& rule : winRules)
         {
-            const ObjectType type = std::get<0>(rule.objects).GetTypes()[0];
+	    const ObjectType type = rule.GetSubject();
 
             if (m_map.At(pos.first, pos.second)
                     .HasType(ConvertTextToIcon(type)))
@@ -312,4 +301,6 @@ void Game::CheckPlayState()
         }
     }
 }
-}  // namespace baba_is_auto
+
+} // namespace baba_is_auto
+

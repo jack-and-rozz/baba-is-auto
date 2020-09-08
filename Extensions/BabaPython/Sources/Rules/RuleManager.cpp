@@ -8,6 +8,7 @@
 #include <baba-is-auto/Rules/RuleManager.hpp>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 using namespace baba_is_auto;
 
@@ -19,6 +20,7 @@ void AddRuleManager(pybind11::module& m)
         .def("RemoveRule", &RuleManager::RemoveRule)
         .def("ClearRules", &RuleManager::ClearRules)
         .def("GetRules", &RuleManager::GetRules)
+        .def("GetAllRules", &RuleManager::GetAllRules)
         .def("GetNumRules", &RuleManager::GetNumRules)
         .def("FindPlayer", &RuleManager::FindPlayer)
         .def("HasProperty", &RuleManager::HasProperty);

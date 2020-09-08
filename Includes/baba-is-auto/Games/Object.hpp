@@ -85,6 +85,7 @@ class Object
     //! \return The flag indicates that the object has property type.
     bool HasPropertyType() const;
 
+    std::vector<ObjectType> GetTextTypes() const;
     bool isRule = false;
 
  private:

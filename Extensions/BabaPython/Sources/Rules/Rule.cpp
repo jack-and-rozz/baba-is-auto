@@ -13,8 +13,15 @@ using namespace baba_is_auto;
 
 void AddRule(pybind11::module& m)
 {
+    // pybind11::class_<Rule>(m, "Rule")
+    //     .def(pybind11::init<Object, Object, Object>())
+    //     .def("__eq__",
+    //          [](const Rule& left, const Rule& right) { return left == right; });
     pybind11::class_<Rule>(m, "Rule")
-        .def(pybind11::init<Object, Object, Object>())
+        .def(pybind11::init<ObjectType, ObjectType, ObjectType>())
         .def("__eq__",
-             [](const Rule& left, const Rule& right) { return left == right; });
+             [](const Rule& left, const Rule& right) { return left == right; })
+	.def("GetSubject", &Rule::GetSubject)
+	.def("GetOperator", &Rule::GetOperator)
+	.def("GetPredicate", &Rule::GetPredicate);
 }

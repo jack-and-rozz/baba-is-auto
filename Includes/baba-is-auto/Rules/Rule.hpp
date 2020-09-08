@@ -27,14 +27,18 @@ class Rule
     //! \param obj1 A first object.
     //! \param obj2 A second object.
     //! \param obj3 A third object.
-    Rule(Object obj1, Object obj2, Object obj3);
+    Rule(ObjectType type1, ObjectType type2, ObjectType type3);
 
     //! Operator overloading for ==.
     //! \param rhs A right side of Rule object.
     //! \return The value that indicates two objects are equal.
     bool operator==(const Rule& rhs) const;
 
-    std::tuple<Object, Object, Object> objects;
+    std::tuple<ObjectType, ObjectType, ObjectType> objectTypes;
+
+    ObjectType GetSubject() const;
+    ObjectType GetOperator() const;
+    ObjectType GetPredicate() const;
 };
 }  // namespace baba_is_auto
 

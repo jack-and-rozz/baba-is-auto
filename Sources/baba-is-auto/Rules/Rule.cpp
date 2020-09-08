@@ -8,13 +8,27 @@
 
 namespace baba_is_auto
 {
-Rule::Rule(Object obj1, Object obj2, Object obj3)
+Rule::Rule(ObjectType type1, ObjectType type2, ObjectType type3)
 {
-    objects = { obj1, obj2, obj3 };
+    objectTypes = { type1, type2, type3 };
 }
 
 bool Rule::operator==(const Rule& rhs) const
 {
-    return objects == rhs.objects;
+    return objectTypes == rhs.objectTypes;
 }
+
+ObjectType Rule::GetSubject() const
+{
+    return std::get<0>(objectTypes);
+}
+ObjectType Rule::GetOperator() const
+{
+    return std::get<1>(objectTypes);
+}
+ObjectType Rule::GetPredicate() const
+{
+    return std::get<2>(objectTypes);
+}
+
 }  // namespace baba_is_auto

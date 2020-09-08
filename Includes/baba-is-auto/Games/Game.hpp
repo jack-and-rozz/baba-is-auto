@@ -59,7 +59,7 @@ class Game
     //! Parses a list of rules.
     void ParseRules();
 
-    //! Parses a rule that satisfies the condition.
+    //! Parses a rule that satisfies the condition and starts from this (x, y).
     //! \param x The x position.
     //! \param y The y position.
     //! \param direction The direction to check the rule.

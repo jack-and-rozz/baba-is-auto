@@ -114,4 +114,20 @@ bool Object::HasPropertyType() const
 
     return false;
 }
+
+
+std::vector<ObjectType> Object::GetTextTypes() const
+{
+    std::vector<ObjectType> types;
+    for (auto& type : m_types)
+    {
+        if (!IsIconType(type))
+        {
+            types.emplace_back(type);
+        }
+    }
+    return types;
+}
+
 }  // namespace baba_is_auto
+
