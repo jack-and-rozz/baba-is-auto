@@ -70,15 +70,19 @@ class Game
     //! \param y The y position.
     //! \param dir The direction to move.
     //! \return The flag indicates that an object can move.
-    bool CanMove(std::size_t x, std::size_t y, Direction dir);
+    bool CanMove(std::size_t x, std::size_t y, Direction dir, ObjectType type);
 
     //! Processes the move of the player.
     //! \param x The x position.
     //! \param y The y position.
     //! \param dir The direction to move.
     //! \param type The object type to move.
-    void ProcessMove(std::size_t x, std::size_t y, Direction dir,
-                     ObjectType type);
+    void ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
+			  ObjectType type);
+
+
+    void ProcessPush(std::size_t x, std::size_t y, Direction dir,
+		     ObjectType type);
 
     //! Checks the play state of the game.
     void CheckPlayState();

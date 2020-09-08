@@ -66,23 +66,47 @@ ObjectType RuleManager::FindPlayer() const
     return ObjectType::ICON_EMPTY;
 }
 
-bool RuleManager::HasProperty(const std::vector<ObjectType>& types,
+
+bool RuleManager::HasProperty(const ObjectType& type,
                               ObjectType property)
 {
-    for (auto type : types){
-	type = IsIconType(type) ? ConvertIconToText(type) : ObjectType::TEXT;
+    auto _type = IsIconType(type) ? ConvertIconToText(type) : ObjectType::TEXT;
 
-	for (auto& rule : m_rules)
-	    {
-		if (std::get<0>(rule.objects).HasType(type) &&
-		    std::get<2>(rule.objects).HasType(property))
-		    {
-			return true;
-		    }
+    // TEXT always has a property of PUSH
+    if ((_type == ObjectType::TEXT) && (property == ObjectType::PUSH) )
+	{
+	    return true;
+	}
+    for (auto& rule : m_rules){
+	if (std::get<0>(rule.objects).HasType(_type) &&
+	    std::get<2>(rule.objects).HasType(property)){
+		return true;
 	    }
     }
-
     return false;
 }
+
+// bool RuleManager::HasProperty(const std::vector<ObjectType>& types,
+//                               ObjectType property)
+// {
+//     for (auto type : types){
+// 	type = IsIconType(type) ? ConvertIconToText(type) : ObjectType::TEXT;
+
+// 	// TEXT always has a property of PUSH
+// 	if ((type == ObjectType::TEXT) && (property == ObjectType::PUSH) )
+// 	{
+// 	    return true;
+// 	}
+// 	for (auto& rule : m_rules)
+// 	    {
+// 		if (std::get<0>(rule.objects).HasType(type) &&
+// 		    std::get<2>(rule.objects).HasType(property))
+// 		    {
+// 			return true;
+// 		    }
+// 	    }
+//     }
+//     return false;
+// }
 
 }  // namespace baba_is_auto

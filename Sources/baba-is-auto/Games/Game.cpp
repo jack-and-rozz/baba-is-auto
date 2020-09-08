@@ -55,12 +55,19 @@ void Game::MovePlayer(Direction dir)
 {
     auto positions = GetMap().GetPositions(m_playerIcon);
 
+    // 1. Movement
     for (auto& [x, y] : positions)
     {
-        if (CanMove(x, y, dir))
-        {
-            ProcessMove(x, y, dir, m_playerIcon);
-        }
+	/*
+	  TODO (letra418): 
+	  Movements made by player and by a rule of MOVE are independently processed. This can cause different results from the original.
+	  e.g.,) 
+	  - We have "BABA IS YOU", "BABA IS MOVE", and "WALL IS STOP". 
+	  - BABA is trying to move to a WALL that is two squares away.
+	  - The movement fails in the original game, but BABA can move by one square in this implementation.
+	  跳ね返ってる(YOUの移動+1, MOVEの移動-1)って考えればこの実装でも行ける？
+	 */
+	ProcessMoveByYou(x, y, dir, m_playerIcon);
     }
 
     ParseRules();
@@ -139,118 +146,140 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
     }
 }
 
-bool Game::CanMove(std::size_t x, std::size_t y, Direction dir)
+
+std::tuple<int, int> GetPositionsAfterMove(std::size_t x, std::size_t y, 
+					   Direction dir)
 {
     int _x = static_cast<int>(x);
     int _y = static_cast<int>(y);
 
+    int dx = 0, dy = 0;
+    if (dir == Direction::UP)
+    {
+        dy = -1;
+    }
+    else if (dir == Direction::DOWN)
+    {
+        dy = 1;
+    }
+    else if (dir == Direction::LEFT)
+    {
+        dx = -1;
+    }
+    else if (dir == Direction::RIGHT)
+    {
+        dx = 1;
+    }
+
+    _x += dx;
+    _y += dy;
+    return std::forward_as_tuple(_x, _y);
+}
+
+bool Game::CanMove(std::size_t x, std::size_t y, Direction dir, 
+		   ObjectType typeOfEntityOnSrc)
+{
     const auto width = static_cast<int>(m_map.GetWidth());
     const auto height = static_cast<int>(m_map.GetHeight());
 
-    int dx = 0, dy = 0;
-    if (dir == Direction::UP)
-    {
-        dy = -1;
-    }
-    else if (dir == Direction::DOWN)
-    {
-        dy = 1;
-    }
-    else if (dir == Direction::LEFT)
-    {
-        dx = -1;
-    }
-    else if (dir == Direction::RIGHT)
-    {
-        dx = 1;
-    }
-
-    _x += dx;
-    _y += dy;
+    int _x;
+    int _y;
+    std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 
     // Check boundary
-    if (_x < 0 || _x >= width || _y < 0 || _y >= height)
-    {
+    if (_x < 0 || _x >= width || _y < 0 || _y >= height){
         return false;
     }
 
-    const std::vector<ObjectType> types = m_map.At(_x, _y).GetTypes();
+    const std::vector<ObjectType> typesOfEntitiesOnDst = m_map.At(_x, _y).GetTypes();
 
-    // Check the icon has property 'STOP'.
-    if (m_ruleManager.HasProperty(types, ObjectType::STOP))
-    {
-        return false;
+    for (auto & type: typesOfEntitiesOnDst){
+	/*
+	  TODO (letra418): 
+	  implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
+	*/
+	if (m_ruleManager.HasProperty(type, ObjectType::PUSH) && 
+	    !CanMove(_x, _y, dir, type)){
+	    return false;
+	}
+	else if (m_ruleManager.HasProperty(type, ObjectType::STOP)){
+	    return false;
+	}
     }
-
-    if (m_ruleManager.HasProperty(types, ObjectType::PUSH) ||
-        m_map.At(_x, _y).HasTextType())
-    {
-        if (!CanMove(_x, _y, dir))
-        {
-            return false;
-        }
-    }
-
     return true;
 }
 
-void Game::ProcessMove(std::size_t x, std::size_t y, Direction dir,
-                       ObjectType type)
+void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
+			    ObjectType typeOfEntityOnSrc)
 {
-    int _x = static_cast<int>(x);
-    int _y = static_cast<int>(y);
 
-    int dx = 0, dy = 0;
-    if (dir == Direction::UP)
-    {
-        dy = -1;
-    }
-    else if (dir == Direction::DOWN)
-    {
-        dy = 1;
-    }
-    else if (dir == Direction::LEFT)
-    {
-        dx = -1;
-    }
-    else if (dir == Direction::RIGHT)
-    {
-        dx = 1;
-    }
+    if (!CanMove(x, y, dir, typeOfEntityOnSrc)) return;
 
-    _x += dx;
-    _y += dy;
+    int _x;
+    int _y;
+    std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 
-    const std::vector<ObjectType> types = m_map.At(_x, _y).GetTypes();
-    // Textが他のタイルと重ならないことを想定している？
-    if (m_map.At(_x, _y).HasTextType()) 
-    {
-        ProcessMove(_x, _y, dir, types[0]);
-    }
-    else if (m_ruleManager.HasProperty(types, ObjectType::PUSH))
-    {
-        auto rules = m_ruleManager.GetRules(ObjectType::PUSH);
+    if ((x == _x) && (y == _y)) return;
 
-        for (auto& rule : rules)
-        {
-            const ObjectType nounType = std::get<0>(rule.objects).GetTypes()[0];
-            ProcessMove(_x, _y, dir, ConvertTextToIcon(nounType)); 
-        }
-    }
-
-    if ((x != _x) || (y != _y))
-    {
-	m_map.AddObject(_x, _y, type);
-	m_map.RemoveObject(x, y, type);
-    }
-
-    const std::vector<ObjectType> tgtTypesAfterMove = m_map.At(_x, _y).GetTypes();
-    if (m_ruleManager.HasProperty(tgtTypesAfterMove, ObjectType::SINK)){
-    	for (auto &t: tgtTypesAfterMove){
-	  m_map.RemoveObject(_x, _y, t);
+    const std::vector<ObjectType> typesOfEntitiesOnDst = m_map.At(_x, _y).GetTypes();
+    for (auto & type: typesOfEntitiesOnDst){
+	if (m_ruleManager.HasProperty(type, ObjectType::PUSH)){
+	    ProcessPush(_x, _y, dir, type);
 	}
     }
+
+    m_map.AddObject(_x, _y, typeOfEntityOnSrc);
+    m_map.RemoveObject(x, y, typeOfEntityOnSrc);
+    return;
+
+    // const std::vector<ObjectType> types = m_map.At(_x, _y).GetTypes();
+    // // Textが他のタイルと重ならないことを想定している？
+    // if (m_map.At(_x, _y).HasTextType()) 
+    // {
+    //     ProcessMove(_x, _y, dir, types[0]);
+    // }
+    // else if (m_ruleManager.HasProperty(types, ObjectType::PUSH))
+    // {
+    //     auto rules = m_ruleManager.GetRules(ObjectType::PUSH);
+
+    //     for (auto& rule : rules)
+    //     {
+    //         const ObjectType nounType = std::get<0>(rule.objects).GetTypes()[0];
+    //         ProcessMove(_x, _y, dir, ConvertTextToIcon(nounType)); 
+    //     }
+    // }
+
+    // if ((x != _x) || (y != _y))
+    // {
+    // 	m_map.AddObject(_x, _y, type);
+    // 	m_map.RemoveObject(x, y, type);
+    // }
+
+    // const std::vector<ObjectType> tgtTypesAfterMove = m_map.At(_x, _y).GetTypes();
+    // if (m_ruleManager.HasProperty(tgtTypesAfterMove, ObjectType::SINK)){
+    // 	for (auto &t: tgtTypesAfterMove){
+    // 	  m_map.RemoveObject(_x, _y, t);
+    // 	}
+    // }
 }
+
+void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
+		 ObjectType typeOfEntityOnSrc){
+    int _x;
+    int _y;
+    std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
+
+    const std::vector<ObjectType> typesOfEntitiesOnDst = m_map.At(_x, _y).GetTypes();
+    for (auto & type: typesOfEntitiesOnDst){
+	if (m_ruleManager.HasProperty(type, ObjectType::PUSH)){
+	    ProcessPush(_x, _y, dir, type);
+	}
+    }
+    m_map.AddObject(_x, _y, typeOfEntityOnSrc);
+    m_map.RemoveObject(x, y, typeOfEntityOnSrc);
+    return;
+}
+
 
 void Game::CheckPlayState()
 {

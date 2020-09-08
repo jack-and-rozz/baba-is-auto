@@ -49,7 +49,9 @@ class RuleManager
     //! \param types A list of object types to check it has property.
     //! \param property The property to check.
     //! \return The flag indicates that an object has specific property.
-    bool HasProperty(const std::vector<ObjectType>& types, ObjectType property);
+
+    // bool HasProperty(const std::vector<ObjectType>& types, ObjectType property);
+    bool HasProperty(const ObjectType& type, ObjectType property);
 
  private:
     std::vector<Rule> m_rules;
