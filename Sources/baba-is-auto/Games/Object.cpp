@@ -59,13 +59,21 @@ bool Object::HasType(ObjectType type) const
 
 bool Object::HasTextType() const
 {
-    if (m_types.size() != 1)
-    {
-        return false;
-    }
+    // if (m_types.size() != 1)
+    // {
+    //     return false;
+    // }
 
-    return static_cast<int>(m_types[0]) <=
-           static_cast<int>(ObjectType::ICON_TYPE);
+    // return static_cast<int>(m_types[0]) <=
+    //        static_cast<int>(ObjectType::ICON_TYPE);
+    for (auto& type : m_types)
+    {
+        if (!IsIconType(type))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Object::HasNounType() const

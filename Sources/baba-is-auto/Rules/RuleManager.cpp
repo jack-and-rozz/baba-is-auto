@@ -69,19 +69,20 @@ ObjectType RuleManager::FindPlayer() const
 bool RuleManager::HasProperty(const std::vector<ObjectType>& types,
                               ObjectType property)
 {
-    for (auto type : types)
-    {
-        type = ConvertIconToText(type);
-        for (auto& rule : m_rules)
-        {
-            if (std::get<0>(rule.objects).HasType(type) &&
-                std::get<2>(rule.objects).HasType(property))
-            {
-                return true;
-            }
-        }
+    for (auto type : types){
+	type = IsIconType(type) ? ConvertIconToText(type) : ObjectType::TEXT;
+
+	for (auto& rule : m_rules)
+	    {
+		if (std::get<0>(rule.objects).HasType(type) &&
+		    std::get<2>(rule.objects).HasType(property))
+		    {
+			return true;
+		    }
+	    }
     }
 
     return false;
 }
+
 }  // namespace baba_is_auto

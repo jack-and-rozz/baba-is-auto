@@ -71,6 +71,15 @@ constexpr bool IsPropertyType(ObjectType type)
     return (type > ObjectType::PROPERTY_TYPE && type < ObjectType::ICON_TYPE);
 }
 
+//! Checks \p type is property type.
+//! \param type The object type.
+//! \return The flag that indicates it is icon type.
+constexpr bool IsIconType(ObjectType type)
+{
+    return (type > ObjectType::ICON_TYPE);
+}
+
+
 //! Converts icon type to text type.
 //! \param type The icon type to convert.
 //! \return The converted text type.
