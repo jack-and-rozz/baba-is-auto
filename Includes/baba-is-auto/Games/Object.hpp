@@ -47,8 +47,8 @@ class Object
     // bool HasProperty(ObjectType type) const;
     // void AddProperty(ObjectType type);
     // void RemoveProperty(ObjectType type);
+    void SetType(ObjectType type);
     void SetDirection(Direction dir);
-
  private:
     // std::size_t m_id;
     ObjectType m_type;
@@ -109,6 +109,7 @@ class Square
 
     bool isRule = false;
     ObjectContainer GetObjects() const;
+    ObjectContainer& GetObjects();
     ObjectContainer GetObjectsByType(ObjectType type) const;
     ObjectContainer GetTextObjects() const;
 
