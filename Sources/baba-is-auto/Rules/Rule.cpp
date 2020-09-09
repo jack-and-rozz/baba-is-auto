@@ -31,4 +31,5 @@ ObjectType Rule::GetPredicate() const
     return std::get<2>(objectTypes);
 }
 
+
 }  // namespace baba_is_auto

@@ -45,26 +45,20 @@ PlayState Game::GetPlayState() const
     return m_playState;
 }
 
-// ObjectType Game::GetPlayerIcons() const
-// {
-//     return m_playerIcons;
-// }
 
 void Game::MovePlayer(Direction dir)
 {
-    // auto positions = GetMap().GetPositions(m_playerIcon);
-    auto players = FindObjectsByProperty(ObjectType::YOU);
 
-    // 1. Movement
-    for (auto& [x, y, obj] : players){
-	// 1-1. Movement by YOU
-	ProcessMoveByYou(x, y, dir, obj);
-    }
+    // 1-1. Movement by YOU
+    ProcessMoveByYou(dir);
 
     // 2. Parsing Rules
     ParseRules();
 
-    // 3. 
+    // 3. Update Objects
+    UpdateObjects();
+
+    // 4. Check Won/List
     CheckPlayState();
 }
 
@@ -178,6 +172,36 @@ std::tuple<int, int> GetPositionsAfterMove(std::size_t x, std::size_t y,
     return std::forward_as_tuple(_x, _y);
 }
 
+std::tuple<int, int> GetPositionsOfPulledObject(std::size_t x, std::size_t y, 
+						Direction dir)
+{
+    int _x = static_cast<int>(x);
+    int _y = static_cast<int>(y);
+
+    int dx = 0, dy = 0;
+    if (dir == Direction::UP)
+    {
+        dy = +1;
+    }
+    else if (dir == Direction::DOWN)
+    {
+        dy = -1;
+    }
+    else if (dir == Direction::LEFT)
+    {
+        dx = 1;
+    }
+    else if (dir == Direction::RIGHT)
+    {
+        dx = -1;
+    }
+
+    _x += dx;
+    _y += dy;
+    return std::forward_as_tuple(_x, _y);
+}
+
+
 bool Game::CanMove(std::size_t x, std::size_t y, Direction dir, 
 		   Object srcObject)
 {
@@ -193,54 +217,54 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
         return false;
     }
 
-    auto dstObjects = m_map.At(_x, _y).GetObjects();
+    auto square = m_map.At(x, y);
+    auto dstObjects = square.GetObjects();
 
     for (auto & obj: dstObjects){
 	/*
 	  Notes (letra418):
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
-	if (m_ruleManager.HasType(obj, ObjectType::PUSH) && 
+	if (m_ruleManager.HasType(obj, square, m_map, ObjectType::PUSH) && 
 	    !CanMove(_x, _y, dir, obj)){
 	    return false;
 	}
-	else if (m_ruleManager.HasType(obj, ObjectType::STOP)){
+	else if (m_ruleManager.HasType(obj, square, m_map, ObjectType::STOP)){
 	    return false;
 	}
     }
     return true;
 }
 
-void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
-			    Object srcObject)
+// void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
+// 			    Object srcObject)
+void Game::ProcessMoveByYou(Direction dir)
 {
 
-    if (!CanMove(x, y, dir, srcObject)) return;
+    auto players = FindObjectsByProperty(ObjectType::YOU);
 
     int _x;
     int _y;
-    std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 
-    if ((x == _x) && (y == _y)) return;
+    for (auto& [x, y, srcObject] : players){
+	if (!CanMove(x, y, dir, srcObject)) continue;
+	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
+	if ((x == _x) && (y == _y)) continue;
 
-    auto dstObjects = m_map.At(_x, _y).GetObjects();
+	auto square = m_map.At(_x, _y);
+	auto dstObjects = square.GetObjects();
 
-    for (auto & obj: dstObjects){
-	if (m_ruleManager.HasType(obj, ObjectType::PUSH)){
-	    ProcessPush(_x, _y, dir, obj);
+	for (auto & obj: dstObjects){
+	    if (m_ruleManager.HasType(obj, square, m_map, ObjectType::PUSH)){
+		ProcessPush(_x, _y, dir, obj);
+	    }
 	}
+
+	m_map.RemoveObject(x, y, srcObject);
+	m_map.AddObject(_x, _y, srcObject);
+
     }
-
-    m_map.RemoveObject(x, y, srcObject);
-    m_map.AddObject(_x, _y, srcObject);
     return;
-
-    // const std::vector<ObjectType> tgtTypesAfterMove = m_map.At(_x, _y).GetTypes();
-    // if (m_ruleManager.HasProperty(tgtTypesAfterMove, ObjectType::SINK)){
-    // 	for (auto &t: tgtTypesAfterMove){
-    // 	  m_map.RemoveObject(_x, _y, t);
-    // 	}
-    // }
 }
 
 void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
@@ -249,10 +273,11 @@ void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
     int _y;
     std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 
-    auto dstObjects = m_map.At(_x, _y).GetObjects();
+    auto square = m_map.At(_x, _y);
+    auto dstObjects = square.GetObjects();
 
     for (auto & obj: dstObjects){
-	if (m_ruleManager.HasType(obj, ObjectType::PUSH)){
+	if (m_ruleManager.HasType(obj, square, m_map, ObjectType::PUSH)){
 	    ProcessPush(_x, _y, dir, obj);
 	}
     }
@@ -260,6 +285,13 @@ void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
     m_map.AddObject(_x, _y, srcObject);
     return;
 }
+
+
+void Game::UpdateObjects(){
+    return;
+}
+
+
 
 
 void Game::CheckPlayState()
@@ -282,17 +314,24 @@ void Game::CheckPlayState()
       Notes (letra418): 
       this judge is imcomplete and will be fixed after implementing conditional operators such as ON and FENCING.
      */
-    auto winRules = m_ruleManager.GetRules(ObjectType::WIN);
-    for (auto& [x, y, obj] : players){
-	auto square = m_map.At(x, y);
-        for (auto& rule : winRules){
-	    const ObjectType winType = rule.GetSubject();
 
-            if (square.HasType(ConvertTextToIcon(winType))){
-                m_playState = PlayState::WON;
-            }
-        }
+    // Player wins when an object has WIN at the same position as one of YOUs.
+    // auto winRules = m_ruleManager.GetRules(ObjectType::WIN);
+
+    for (auto& [x, y, playerObj] : players){
+	auto square = m_map.At(x, y);
+	for (auto& objOnPlayer: square.GetObjects()){
+	    if (m_ruleManager.HasType(objOnPlayer, square, m_map, ObjectType::WIN)){
+		m_playState = PlayState::WON;
+	    }
+	}
     }
+    // for (auto& rule : winRules){
+    //     const ObjectType winType = rule.GetSubject();
+    //     if (square.HasType(ConvertTextToIcon(winType))){
+    //         m_playState = PlayState::WON;
+    //     }
+    // }
 }
 
 std::vector<std::tuple<size_t, size_t, Object>> Game::FindObjectsByProperty(ObjectType property) const{
@@ -303,8 +342,9 @@ std::vector<std::tuple<size_t, size_t, Object>> Game::FindObjectsByProperty(Obje
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
-	    for (auto& obj: m_map.At(x, y).GetObjects()){
-		if (m_ruleManager.HasType(obj, property)){
+	    auto square = m_map.At(x, y);
+	    for (auto& obj: square.GetObjects()){
+		if (m_ruleManager.HasType(obj, square, m_map, property)){
 		    res.emplace_back(std::make_tuple(x, y, obj));
 		}
 	    }

@@ -43,11 +43,12 @@ void Map::Load(std::string_view filename)
     /* Notes (letra418):
        TODO: load direction files 
     */
-    for (std::size_t i = 0; i < m_width * m_height; ++i)
-    {
+    for (std::size_t y = 0; y < m_height; ++y){
+	for (std::size_t x = 0; x < m_width; ++x){
+
         mapFile >> val;
 	//Object obj = ;
-	Square sq = Square(std::vector{Object(static_cast<ObjectType>(val))});
+	Square sq = Square(x, y, std::vector{Object(static_cast<ObjectType>(val))});
 
 	m_initSquares.emplace_back(sq);
 	m_squares.emplace_back(sq);
@@ -55,9 +56,9 @@ void Map::Load(std::string_view filename)
         //     std::vector<ObjectType>{ static_cast<ObjectType>(val) });
         // m_objects.emplace_back(
         //     std::vector<ObjectType>{ static_cast<ObjectType>(val) });
+	}
     }
 }
-
 
 void Map::Reset()
 {

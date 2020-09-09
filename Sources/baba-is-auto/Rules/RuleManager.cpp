@@ -61,7 +61,8 @@ std::size_t RuleManager::GetNumRules() const
 }
 
 
-bool RuleManager::HasType(const Object& obj,ObjectType tgtType) const {
+bool RuleManager::HasType(const Object& obj, const Square& sq, const Map& map, 
+			  ObjectType tgtType) const {
     auto objType = obj.GetType();
     objType = IsIconType(objType) ? ConvertIconToText(objType) : ObjectType::TEXT;
  

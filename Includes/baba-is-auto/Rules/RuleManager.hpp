@@ -8,6 +8,7 @@
 #define BABA_IS_AUTO_RULE_MANAGER_HPP
 
 #include <baba-is-auto/Rules/Rule.hpp>
+#include <baba-is-auto/Games/Map.hpp>
 
 #include <vector>
 
@@ -47,7 +48,8 @@ class RuleManager
     //! \param property The property to check.
     //! \return The flag indicates that an object has specific property.
 
-    bool HasType(const Object& obj, ObjectType type) const;
+    bool HasType(const Object& obj, const Square& sq, const Map& map, 
+		 ObjectType type) const;
 
  private:
     std::vector<Rule> m_rules;

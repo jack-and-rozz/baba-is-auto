@@ -28,7 +28,7 @@ void AddObject(pybind11::module& m)
 
     pybind11::class_<Square>(m, "Square")
         .def(pybind11::init<>())
-        .def(pybind11::init<ObjectContainer>())
+        .def(pybind11::init<std::size_t, std::size_t, ObjectContainer>())
         .def("AddObject", &Square::AddObject)
         .def("RemoveObject", &Square::RemoveObject)
         .def("RemoveAllByType", &Square::RemoveAllByType)

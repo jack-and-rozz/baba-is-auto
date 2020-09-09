@@ -71,7 +71,7 @@ class Square
 
     //! Constructs an object.
     //! \param types A list of object types.
-    explicit Square(std::vector<Object> objects);
+    explicit Square(std::size_t x, std::size_t y, std::vector<Object> objects);
 
     //! Operator overloading for ==.
     //! \param rhs A right side of Object object.
@@ -89,12 +89,12 @@ class Square
     void RemoveAllByType(ObjectType type);
 
 
-    //! Checks the object has specific type.
+    //! Checks the square has specific type.
     //! \param type An object type to check.
     //! \return The flag indicates that the object has specific type.
     /* 
-       *Note*
-       This function does not support types induced by rules. 
+       Note (letra418):  
+       HasType does not support types induced by rules. 
        e.g., Even if there is a rule "WATER IS SINK" and ICON_WATER is at (x, y), 
        Map.At(x, y).HasType(ObjectType::SINK) returns false.
        In contrast, 
@@ -112,8 +112,14 @@ class Square
     ObjectContainer GetObjectsByType(ObjectType type) const;
     ObjectContainer GetTextObjects() const;
 
+    std::size_t X();
+    std::size_t Y();
+
  private:
+    std::size_t m_x;
+    std::size_t m_y;
     ObjectContainer m_objects;
+
 };
 
 }  // namespace baba_is_auto

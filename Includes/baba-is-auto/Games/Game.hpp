@@ -77,12 +77,17 @@ class Game
     //! \param y The y position.
     //! \param dir The direction to move.
     //! \param type The object type to move.
-    void ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
-			  Object obj);
+
+    // void ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
+    // 			  Object obj);
+
+    void ProcessMoveByYou(Direction dir);
 
 
     void ProcessPush(std::size_t x, std::size_t y, Direction dir,
 		     Object obj);
+
+    void UpdateObjects();
 
     //! Checks the play state of the game.
     void CheckPlayState();

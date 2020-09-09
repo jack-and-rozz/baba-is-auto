@@ -23,8 +23,6 @@ Object::Object(ObjectType type, Direction dir){
 
 bool Object::operator==(const Object& rhs) const
 {
-    // 重複しないIDを振った方が確実？
-    // return (m_id == rhs.m_id) && (m_type == rhs.m_type) && (m_direction == rhs.m_direction);
     return (m_type == rhs.m_type) && (m_direction == rhs.m_direction);
 }
 
@@ -37,6 +35,9 @@ Direction Object::GetDirection() const{
     return m_direction;
 }
 
+void Object::SetDirection(Direction dir){
+    m_direction = dir;
+}
 
 // std::unordered_set<ObjectType> Object::GetProperties() const{
 //     return m_properties;
@@ -54,19 +55,20 @@ Direction Object::GetDirection() const{
 //     m_properties.erase(type);
 // }
 
-void Object::SetDirection(Direction dir){
-    m_direction = dir;
-}
 
 /******************************************
                Square
 *******************************************/
 
 
-Square::Square(ObjectContainer objects) : m_objects(std::move(objects))
+Square::Square(std::size_t x, std::size_t y, ObjectContainer objects) 
+    : m_x(x), m_y(y), m_objects(std::move(objects))
 {
 }
 
+
+std::size_t Square::X(){return m_x;}
+std::size_t Square::Y(){return m_y;}
 
 void Square::AddObject(Object object){
     m_objects.emplace_back(object);
