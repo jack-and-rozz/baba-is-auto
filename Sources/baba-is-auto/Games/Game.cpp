@@ -251,9 +251,14 @@ void Game::ProcessMoveByYou(Direction dir)
       - 複数のYOUが並んでいるときにあるYOUが先に動いた結果，他のYOUをPUSHしてしまう
       - 複数のYOUが重なっている時に一番上のYOUが先に動いた結果，次のYOUが動く時に進路をブロックしてバラけてしまう
      */
-
     for (auto& [x, y, srcObject] : players){
-	// srcObject.SetDirection(dir);
+	// std::cout << static_cast<int>(srcObject.GetType()) << " "
+	// 	  << static_cast<int>(srcObject.GetDirection()) << " "
+	// 	  << x << " "
+	// 	  << y << " "
+	// 	  << std::endl;
+
+	// srcObject.SetDirection(dir); // Notes: Segmentation Fault
 
 	if (!CanMove(x, y, dir, srcObject)) continue;
 	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
