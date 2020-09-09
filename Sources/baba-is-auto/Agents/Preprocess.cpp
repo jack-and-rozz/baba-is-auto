@@ -37,8 +37,7 @@ std::vector<float> Preprocess::StateToTensor(const Game& game)
     {
         for (std::size_t x = 0; x < width; ++x)
         {
-            // const auto objs = game.GetMap().At(x, y).GetObjects();
-            const ObjectContainer objs = game.GetMap().At(x, y).GetObjects();
+            const auto objs = game.GetMap().At(x, y).GetObjects();
 
             if (!objs.empty())
             {

@@ -349,7 +349,6 @@ void Game::CheckPlayState()
     // }
 }
 
-
 std::vector<std::tuple<size_t, size_t, Object>> Game::FindObjectsByProperty(ObjectType property) const{
     std::vector<std::tuple<size_t, size_t, Object>> res;
 

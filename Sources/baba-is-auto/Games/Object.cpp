@@ -35,9 +35,6 @@ Direction Object::GetDirection() const{
     return m_direction;
 }
 
-void Object::SetType(ObjectType type){
-    m_type = type;
-}
 void Object::SetDirection(Direction dir){
     m_direction = dir;
 }
@@ -102,11 +99,10 @@ void Square::RemoveAllByType(ObjectType type){
 }
 
 
-// ObjectContainer& Square::GetObjects(){
+// std::vector<Object> Square::GetObjects() const{
 ObjectContainer Square::GetObjects() const{
     return m_objects;
 }
-
 
 ObjectContainer Square::GetObjectsByType(ObjectType type) const{
     ObjectContainer res;
