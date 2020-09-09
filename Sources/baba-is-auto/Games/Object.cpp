@@ -35,6 +35,10 @@ Direction Object::GetDirection() const{
     return m_direction;
 }
 
+void Object::SetType(ObjectType type){
+    m_type = type;
+}
+
 void Object::SetDirection(Direction dir){
     m_direction = dir;
 }
@@ -104,15 +108,15 @@ ObjectContainer Square::GetObjects() const{
     return m_objects;
 }
 
-ObjectContainer Square::GetObjectsByType(ObjectType type) const{
-    ObjectContainer res;
-    for (auto& obj: m_objects){
-	if (obj.GetType() == type){
-	    res.emplace_back(obj);
-	}
-    }
-    return res;
-}
+// ObjectContainer Square::GetObjectsByType(ObjectType type) const{
+//     ObjectContainer res;
+//     for (auto& obj: m_objects){
+// 	if (obj.GetType() == type){
+// 	    res.emplace_back(obj);
+// 	}
+//     }
+//     return res;
+// }
 
 bool Square::HasType(ObjectType type) const
 {

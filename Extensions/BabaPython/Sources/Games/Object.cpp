@@ -23,17 +23,12 @@ void AddObject(pybind11::module& m)
 			 (left.GetDirection() == right.GetDirection()));
              })
 	.def("GetType", &Object::GetType)
-	.def("SetDirection", &Object::SetDirection)
 	.def("GetDirection", &Object::GetDirection);
 
     pybind11::class_<Square>(m, "Square")
         .def(pybind11::init<>())
         .def(pybind11::init<std::size_t, std::size_t, ObjectContainer>())
-        .def("AddObject", &Square::AddObject)
-        .def("RemoveObject", &Square::RemoveObject)
-        .def("RemoveAllByType", &Square::RemoveAllByType)
         .def("GetObjects", &Square::GetObjects)
-        .def("GetObjectsByType", &Square::GetObjectsByType)
         .def("HasType", &Square::HasType)
         .def("HasTextType", &Square::HasTextType)
         .def("HasNounType", &Square::HasNounType)
