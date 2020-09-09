@@ -10,6 +10,7 @@
 
 namespace baba_is_auto
 {
+// Reassign Object IDs to make tensors small.
 std::map<ObjectType, std::size_t> TENSOR_DIM_MAP = {
     { ObjectType::BABA, 0 },      { ObjectType::IS, 1 },
     { ObjectType::YOU, 2 },       { ObjectType::ICON_EMPTY, 3 },
@@ -36,7 +37,7 @@ std::vector<float> Preprocess::StateToTensor(const Game& game)
     {
         for (std::size_t x = 0; x < width; ++x)
         {
-            const auto objs = game.GetMap().At(x, y).GetTypes();
+            const auto objs = game.GetMap().At(x, y).GetObjects();
 
             if (!objs.empty())
             {
@@ -44,9 +45,9 @@ std::vector<float> Preprocess::StateToTensor(const Game& game)
 
                 for (auto& obj : objs)
                 {
-                    tensor[ToIndex(x, y, TENSOR_DIM_MAP[obj])] = 1.0f;
+                    tensor[ToIndex(x, y, TENSOR_DIM_MAP[obj.GetType()])] = 1.0f;
 
-                    if (IsTextType(obj))
+                    if (IsTextType(obj.GetType()))
                     {
                         isTextType = true;
                     }

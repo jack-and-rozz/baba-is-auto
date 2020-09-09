@@ -13,21 +13,50 @@ namespace baba_is_auto
 Map::Map(std::size_t width, std::size_t height)
     : m_width(width), m_height(height)
 {
-    m_initObjects.reserve(m_width * m_height);
-    m_objects.reserve(m_width * m_height);
+    m_initSquares.reserve(m_width * m_height);
+    m_squares.reserve(m_width * m_height);
 
     for (std::size_t i = 0; i < m_width * m_height; ++i)
     {
-        m_initObjects.emplace_back(
-            std::vector<ObjectType>{ ObjectType::ICON_EMPTY });
-        m_objects.emplace_back(
-            std::vector<ObjectType>{ ObjectType::ICON_EMPTY });
+	Square sq = Square();
+	m_initSquares.emplace_back(sq);
+	m_squares.emplace_back(Square(sq));
+        // m_initObjects.emplace_back(
+        //     std::vector<ObjectType>{ ObjectType::ICON_EMPTY });
+        // m_objects.emplace_back(
+        //     std::vector<ObjectType>{ ObjectType::ICON_EMPTY });
     }
 }
 
+void Map::Load(std::string_view filename)
+{
+    std::ifstream mapFile(filename.data());
+
+    mapFile >> m_width >> m_height;
+
+    int val = 0;
+
+    /* Notes (letra418):
+       TODO: load direction files 
+    */
+    for (std::size_t i = 0; i < m_width * m_height; ++i)
+    {
+        mapFile >> val;
+
+	Object obj = Object(static_cast<ObjectType>(val));
+	m_initSquares[i].AddObject(obj);
+	m_squares[i].AddObject(obj);
+        // m_initObjects.emplace_back(
+        //     std::vector<ObjectType>{ static_cast<ObjectType>(val) });
+        // m_objects.emplace_back(
+        //     std::vector<ObjectType>{ static_cast<ObjectType>(val) });
+    }
+}
+
+
 void Map::Reset()
 {
-    m_objects = m_initObjects;
+    m_squares = m_initSquares;
 }
 
 std::size_t Map::GetWidth() const
@@ -40,59 +69,26 @@ std::size_t Map::GetHeight() const
     return m_height;
 }
 
-void Map::Load(std::string_view filename)
+
+void Map::AddObject(std::size_t x, std::size_t y, Object obj)
 {
-    std::ifstream mapFile(filename.data());
-
-    mapFile >> m_width >> m_height;
-
-    int val = 0;
-    for (std::size_t i = 0; i < m_width * m_height; ++i)
-    {
-        mapFile >> val;
-
-        m_initObjects.emplace_back(
-            std::vector<ObjectType>{ static_cast<ObjectType>(val) });
-        m_objects.emplace_back(
-            std::vector<ObjectType>{ static_cast<ObjectType>(val) });
-    }
+    m_squares.at(y * m_width + x).AddObject(obj);
 }
 
-void Map::AddObject(std::size_t x, std::size_t y, ObjectType type, Direction dir=Direction::RIGHT)
+void Map::RemoveObject(std::size_t x, std::size_t y, Object obj)
 {
-    m_objects.at(y * m_width + x).Add(type, dir);
+    m_squares.at(y * m_width + x).RemoveObject(obj);
 }
 
-void Map::RemoveObject(std::size_t x, std::size_t y, ObjectType type)
+Square& Map::At(std::size_t x, std::size_t y)
 {
-    m_objects.at(y * m_width + x).Remove(type);
+    return m_squares.at(y * m_width + x);
 }
 
-Object& Map::At(std::size_t x, std::size_t y)
+const Square& Map::At(std::size_t x, std::size_t y) const
 {
-    return m_objects.at(y * m_width + x);
+    return m_squares.at(y * m_width + x);
 }
 
-const Object& Map::At(std::size_t x, std::size_t y) const
-{
-    return m_objects.at(y * m_width + x);
-}
 
-std::vector<Position> Map::GetPositions(ObjectType type) const
-{
-    std::vector<Position> res;
-
-    for (std::size_t y = 0; y < m_height; ++y)
-    {
-        for (std::size_t x = 0; x < m_width; ++x)
-        {
-            if (At(x, y).HasType(type))
-            {
-                res.emplace_back(std::make_pair(x, y));
-            }
-        }
-    }
-
-    return res;
-}
 }  // namespace baba_is_auto

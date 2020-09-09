@@ -49,7 +49,7 @@ class Game
 
     //! Gets an icon type that represents player.
     //! \return An icon type that represents player.
-    ObjectType GetPlayerIcon() const;
+    ObjectType GetPlayerIcons() const;
 
     //! Moves the icon that represents player.
     //! \param dir The direction to move the player.
@@ -70,7 +70,7 @@ class Game
     //! \param y The y position.
     //! \param dir The direction to move.
     //! \return The flag indicates that an object can move.
-    bool CanMove(std::size_t x, std::size_t y, Direction dir, ObjectType type);
+    bool CanMove(std::size_t x, std::size_t y, Direction dir, Object obj);
 
     //! Processes the move of the player.
     //! \param x The x position.
@@ -78,20 +78,23 @@ class Game
     //! \param dir The direction to move.
     //! \param type The object type to move.
     void ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
-			  ObjectType type);
+			  Object obj);
 
 
     void ProcessPush(std::size_t x, std::size_t y, Direction dir,
-		     ObjectType type);
+		     Object obj);
 
     //! Checks the play state of the game.
     void CheckPlayState();
+
+    std::vector<std::tuple<size_t, size_t, Object>> FindObjectsByProperty(ObjectType property) const;
+
 
     Map m_map;
     RuleManager m_ruleManager;
 
     PlayState m_playState = PlayState::INVALID;
-    ObjectType m_playerIcon = ObjectType::ICON_EMPTY;
+    // std::vector<ObjectType> m_playerIcons;
 };
 }  // namespace baba_is_auto
 

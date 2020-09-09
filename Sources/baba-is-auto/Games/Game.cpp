@@ -11,10 +11,12 @@ namespace baba_is_auto
 
 Game::Game(std::string_view filename)
 {
+    std::cout <<  "Load"  << std::endl;
     m_map.Load(filename);
-
+    std::cout <<  "ParseRules" << std::endl;
     ParseRules();
 
+    std::cout <<  "PlayState" << std::endl;
     m_playState = PlayState::PLAYING;
 }
 
@@ -47,31 +49,20 @@ PlayState Game::GetPlayState() const
     return m_playState;
 }
 
-ObjectType Game::GetPlayerIcon() const
-{
-    return m_playerIcon;
-}
+// ObjectType Game::GetPlayerIcons() const
+// {
+//     return m_playerIcons;
+// }
 
 void Game::MovePlayer(Direction dir)
 {
-    auto positions = GetMap().GetPositions(m_playerIcon);
+    // auto positions = GetMap().GetPositions(m_playerIcon);
+    auto players = FindObjectsByProperty(ObjectType::YOU);
 
     // 1. Movement
-    for (auto& [x, y] : positions)
-    {
-	/*
-	  Notes (letra418): 
-	  Movements made by player and by a rule of MOVE are independently processed. This can cause different results from the original.
-	  e.g.,) 
-	  - We have "BABA IS YOU", "BABA IS MOVE", and "WALL IS STOP". 
-	  - BABA is trying to move to a WALL that is two squares away.
-	  - The movement fails in the original game, but BABA can move by one square in this implementation.
-	  跳ね返ってる(YOUの移動+1, MOVEの移動-1)って考えればこの実装でも行ける？
-	 */
-
-	// 1-1. Movement by YOU 
-	ProcessMoveByYou(x, y, dir, m_playerIcon);
-	// 1つずつ動くので複数同じアイコンのYOUがあるとき動き終わった後のYouまた動いちゃう．IDで管理がやはりいる？
+    for (auto& [x, y, obj] : players){
+	// 1-1. Movement by YOU
+	ProcessMoveByYou(x, y, dir, obj);
     }
 
     // 2. Parsing Rules
@@ -105,7 +96,7 @@ void Game::ParseRules()
         }
     }
 
-    m_playerIcon = m_ruleManager.FindPlayer();
+    // m_playerIcons = m_ruleManager.GetSubjectsByPredicate(ObjectType::YOU);
 }
 
 void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
@@ -125,9 +116,9 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
             (m_map.At(x + 2, y).HasNounType() ||
              m_map.At(x + 2, y).HasPropertyType()))
 	{
-	    auto type1 = m_map.At(x, y).GetTextTypes()[0];
-	    auto type2 = m_map.At(x + 1, y).GetTextTypes()[0];
-	    auto type3 = m_map.At(x + 2, y).GetTextTypes()[0];
+	    auto type1 = m_map.At(x, y).GetTextObjects()[0].GetType();
+	    auto type2 = m_map.At(x + 1, y).GetTextObjects()[0].GetType();
+	    auto type3 = m_map.At(x + 2, y).GetTextObjects()[0].GetType();
 
 	    Rule newRule = Rule(type1, type2, type3);
 	    m_ruleManager.AddRule(newRule);
@@ -148,9 +139,9 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
             (m_map.At(x, y + 2).HasNounType() ||
              m_map.At(x, y + 2).HasPropertyType()))
 	{
-	    auto type1 = m_map.At(x, y).GetTextTypes()[0];
-	    auto type2 = m_map.At(x, y + 1).GetTextTypes()[0];
-	    auto type3 = m_map.At(x, y + 2).GetTextTypes()[0];
+	    auto type1 = m_map.At(x, y).GetTextObjects()[0].GetType();
+	    auto type2 = m_map.At(x, y + 1).GetTextObjects()[0].GetType();
+	    auto type3 = m_map.At(x, y + 2).GetTextObjects()[0].GetType();
 
 	    Rule newRule = Rule(type1, type2, type3);
 	    m_ruleManager.AddRule(newRule);
@@ -192,7 +183,7 @@ std::tuple<int, int> GetPositionsAfterMove(std::size_t x, std::size_t y,
 }
 
 bool Game::CanMove(std::size_t x, std::size_t y, Direction dir, 
-		   ObjectType typeOfEntityOnSrc)
+		   Object srcObject)
 {
     const auto width = static_cast<int>(m_map.GetWidth());
     const auto height = static_cast<int>(m_map.GetHeight());
@@ -206,18 +197,18 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
         return false;
     }
 
-    const std::vector<ObjectType> typesOfEntitiesOnDst = m_map.At(_x, _y).GetTypes();
+    auto dstObjects = m_map.At(_x, _y).GetObjects();
 
-    for (auto & type: typesOfEntitiesOnDst){
+    for (auto & obj: dstObjects){
 	/*
 	  Notes (letra418):
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
-	if (m_ruleManager.HasProperty(type, ObjectType::PUSH) && 
-	    !CanMove(_x, _y, dir, type)){
+	if (m_ruleManager.HasType(obj, ObjectType::PUSH) && 
+	    !CanMove(_x, _y, dir, obj)){
 	    return false;
 	}
-	else if (m_ruleManager.HasProperty(type, ObjectType::STOP)){
+	else if (m_ruleManager.HasType(obj, ObjectType::STOP)){
 	    return false;
 	}
     }
@@ -225,10 +216,10 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 }
 
 void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
-			    ObjectType typeOfEntityOnSrc)
+			    Object srcObject)
 {
 
-    if (!CanMove(x, y, dir, typeOfEntityOnSrc)) return;
+    if (!CanMove(x, y, dir, srcObject)) return;
 
     int _x;
     int _y;
@@ -236,15 +227,16 @@ void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
 
     if ((x == _x) && (y == _y)) return;
 
-    const std::vector<ObjectType> typesOfEntitiesOnDst = m_map.At(_x, _y).GetTypes();
-    for (auto & type: typesOfEntitiesOnDst){
-	if (m_ruleManager.HasProperty(type, ObjectType::PUSH)){
-	    ProcessPush(_x, _y, dir, type);
+    auto dstObjects = m_map.At(_x, _y).GetObjects();
+
+    for (auto & obj: dstObjects){
+	if (m_ruleManager.HasType(obj, ObjectType::PUSH)){
+	    ProcessPush(_x, _y, dir, obj);
 	}
     }
 
-    m_map.RemoveObject(x, y, typeOfEntityOnSrc);
-    m_map.AddObject(_x, _y, typeOfEntityOnSrc, dir);
+    m_map.RemoveObject(x, y, srcObject);
+    m_map.AddObject(_x, _y, srcObject);
     return;
 
     // const std::vector<ObjectType> tgtTypesAfterMove = m_map.At(_x, _y).GetTypes();
@@ -256,19 +248,20 @@ void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
 }
 
 void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
-		 ObjectType typeOfEntityOnSrc){
+		       Object srcObject){
     int _x;
     int _y;
     std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 
-    const std::vector<ObjectType> typesOfEntitiesOnDst = m_map.At(_x, _y).GetTypes();
-    for (auto & type: typesOfEntitiesOnDst){
-	if (m_ruleManager.HasProperty(type, ObjectType::PUSH)){
-	    ProcessPush(_x, _y, dir, type);
+    auto dstObjects = m_map.At(_x, _y).GetObjects();
+
+    for (auto & obj: dstObjects){
+	if (m_ruleManager.HasType(obj, ObjectType::PUSH)){
+	    ProcessPush(_x, _y, dir, obj);
 	}
     }
-    m_map.RemoveObject(x, y, typeOfEntityOnSrc);
-    m_map.AddObject(_x, _y, typeOfEntityOnSrc, dir);
+    m_map.RemoveObject(x, y, srcObject);
+    m_map.AddObject(_x, _y, srcObject);
     return;
 }
 
@@ -282,27 +275,46 @@ void Game::CheckPlayState()
         return;
     }
 
-    auto positions = m_map.GetPositions(m_playerIcon);
-    if (positions.empty())
+    auto players = FindObjectsByProperty(ObjectType::YOU);
+    if (players.empty())
     {
         m_playState = PlayState::LOST;
         return;
     }
-
+    
+    /*
+      Notes (letra418): 
+      this judge is imcomplete and will be fixed after implementing conditional operators such as ON and FENCING.
+     */
     auto winRules = m_ruleManager.GetRules(ObjectType::WIN);
-    for (auto& pos : positions)
-    {
-        for (auto& rule : winRules)
-        {
-	    const ObjectType type = rule.GetSubject();
+    for (auto& [x, y, obj] : players){
+	auto square = m_map.At(x, y);
+        for (auto& rule : winRules){
+	    const ObjectType winType = rule.GetSubject();
 
-            if (m_map.At(pos.first, pos.second)
-                    .HasType(ConvertTextToIcon(type)))
-            {
+            if (square.HasType(ConvertTextToIcon(winType))){
                 m_playState = PlayState::WON;
             }
         }
     }
+}
+
+std::vector<std::tuple<size_t, size_t, Object>> Game::FindObjectsByProperty(ObjectType property) const{
+    std::vector<std::tuple<size_t, size_t, Object>> res;
+
+    const std::size_t width = m_map.GetWidth();
+    const std::size_t height = m_map.GetHeight();
+
+    for (std::size_t y = 0; y < height; ++y){
+        for (std::size_t x = 0; x < width; ++x){
+	    for (auto& obj: m_map.At(x, y).GetObjects()){
+		if (m_ruleManager.HasType(obj, property)){
+		    res.emplace_back(std::make_tuple(x, y, obj));
+		}
+	    }
+        }
+    }
+    return res;
 }
 
 } // namespace baba_is_auto

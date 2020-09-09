@@ -16,18 +16,28 @@ void AddObject(pybind11::module& m)
 {
     pybind11::class_<Object>(m, "Object")
         .def(pybind11::init<>())
-        .def(pybind11::init<std::vector<ObjectType>>())
+        .def(pybind11::init<ObjectType, Direction>())
         .def("__eq__",
              [](const Object& left, const Object& right) {
-                 return left.GetTypes() == right.GetTypes();
+                 return ((left.GetType() == right.GetType()) &&
+			 (left.GetDirection() == right.GetDirection()));
              })
-        .def("Add", &Object::Add)
-        .def("Remove", &Object::Remove)
-        .def("GetTypes", &Object::GetTypes)
-        .def("GetDirections", &Object::GetDirections)
-        .def("HasType", &Object::HasType)
-        .def("HasTextType", &Object::HasTextType)
-        .def("HasNounType", &Object::HasNounType)
-        .def("HasVerbType", &Object::HasVerbType)
-        .def("HasPropertyType", &Object::HasPropertyType);
+	.def("GetType", &Object::GetType)
+	.def("SetDirection", &Object::SetDirection)
+	.def("GetDirection", &Object::GetDirection);
+
+    pybind11::class_<Square>(m, "Square")
+        .def(pybind11::init<>())
+        .def(pybind11::init<ObjectContainer>())
+        .def("AddObject", &Square::AddObject)
+        .def("RemoveObject", &Square::RemoveObject)
+        .def("RemoveAllByType", &Square::RemoveAllByType)
+        .def("GetObjects", &Square::GetObjects)
+        .def("GetObjectsByType", &Square::GetObjectsByType)
+        .def("HasType", &Square::HasType)
+        .def("HasTextType", &Square::HasTextType)
+        .def("HasNounType", &Square::HasNounType)
+        .def("HasVerbType", &Square::HasVerbType)
+        .def("HasPropertyType", &Square::HasPropertyType);
+
 }

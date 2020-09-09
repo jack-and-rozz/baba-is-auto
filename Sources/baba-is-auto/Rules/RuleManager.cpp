@@ -20,12 +20,11 @@ void RuleManager::RemoveRule(const Rule& rule)
 {
     /*
       Note (letra418): 
-      Removing all the duplicated rules and removing only one should be distinguished?
+      1. "Removing all the duplicated rules" / 2. "removing only one" should be distinguished?
      */
-    const auto iter = std::find(m_rules.begin(), m_rules.end(), rule);
-    if (iter != m_rules.end())
-    {
-        m_rules.erase(iter);
+    const auto itr = std::find(m_rules.begin(), m_rules.end(), rule);
+    if (itr != m_rules.end()){
+        m_rules.erase(itr);
     }
 }
 
@@ -61,69 +60,24 @@ std::size_t RuleManager::GetNumRules() const
     return m_rules.size();
 }
 
-ObjectType RuleManager::FindPlayer() const
-{
-    /*
-      Notes (letra418): 
-      Currently only one type can be YOU.
-     */
 
-    for (auto& rule : m_rules)
-    {
-        if (rule.GetPredicate() == ObjectType::YOU)
-        {
-            const ObjectType type = rule.GetSubject();
-            return ConvertTextToIcon(type);
-        }
+bool RuleManager::HasType(const Object& obj,ObjectType tgtType) const {
+    auto objType = obj.GetType();
+    objType = IsIconType(objType) ? ConvertIconToText(objType) : ObjectType::TEXT;
+ 
+    // TEXT is always PUSH
+    if ((objType == ObjectType::TEXT) && (tgtType == ObjectType::PUSH)){
+	return true;
     }
 
-    /*
-      Notes (letra418): 
-      This can cause bugs when "EMPTY IS YOU" is formed.
-     */
-    return ObjectType::ICON_EMPTY;
-}
-
-
-bool RuleManager::HasProperty(const ObjectType& type,
-                              ObjectType property)
-{
-    auto _type = IsIconType(type) ? ConvertIconToText(type) : ObjectType::TEXT;
-
-    // TEXT always has a property of PUSH
-    if ((_type == ObjectType::TEXT) && (property == ObjectType::PUSH)){
-	    return true;
-	}
     for (auto& rule : m_rules){
-	if ((rule.GetSubject() == _type) &&
-	    (rule.GetPredicate() == property)){
+	if ((rule.GetSubject() == objType) &&
+	    (rule.GetOperator() == ObjectType::IS) &&
+	    (rule.GetPredicate() == tgtType)){
 		return true;
 	    }
     }
     return false;
 }
-
-// bool RuleManager::HasProperty(const std::vector<ObjectType>& types,
-//                               ObjectType property)
-// {
-//     for (auto type : types){
-// 	type = IsIconType(type) ? ConvertIconToText(type) : ObjectType::TEXT;
-
-// 	// TEXT always has a property of PUSH
-// 	if ((type == ObjectType::TEXT) && (property == ObjectType::PUSH) )
-// 	{
-// 	    return true;
-// 	}
-// 	for (auto& rule : m_rules)
-// 	    {
-// 		if (std::get<0>(rule.objects).HasType(type) &&
-// 		    std::get<2>(rule.objects).HasType(property))
-// 		    {
-// 			return true;
-// 		    }
-// 	    }
-//     }
-//     return false;
-// }
 
 }  // namespace baba_is_auto

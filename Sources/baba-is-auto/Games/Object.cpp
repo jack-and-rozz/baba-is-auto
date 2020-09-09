@@ -10,136 +10,179 @@
 
 namespace baba_is_auto
 {
-Object::Object(std::vector<ObjectType> types) : m_types(std::move(types))
-{
-    m_directions.reserve(m_types.size());
-    for (int i = 0; i < m_types.size(); ++i) {
-	m_directions.emplace_back(Direction::RIGHT);
-    }
+
+/******************************************
+                Object
+*******************************************/
+// Object::Object(std::size_t id, ObjectType type, Direction dir=Direction::NONE){
+Object::Object(ObjectType type, Direction dir){	
+    // m_id = id;
+    m_type = type;
+    m_direction = dir;
 }
 
 bool Object::operator==(const Object& rhs) const
 {
-    return (m_types == rhs.m_types) && (m_directions == rhs.m_directions);
+    // 重複しないIDを振った方が確実？
+    // return (m_id == rhs.m_id) && (m_type == rhs.m_type) && (m_direction == rhs.m_direction);
+    return (m_type == rhs.m_type) && (m_direction == rhs.m_direction);
 }
 
-void Object::Add(ObjectType type, Direction dir)
+
+ObjectType Object::GetType() const{
+    return m_type;
+}
+
+Direction Object::GetDirection() const{
+    return m_direction;
+}
+
+
+// std::unordered_set<ObjectType> Object::GetProperties() const{
+//     return m_properties;
+// }
+
+// bool Object::HasProperty(ObjectType type) const{
+//     return m_properties.find(type) != m_properties.end();
+// }
+
+// void Object::AddProperty(ObjectType type){
+//     m_properties.insert(type);
+// }
+
+// void Object::RemoveProperty(ObjectType type){
+//     m_properties.erase(type);
+// }
+
+void Object::SetDirection(Direction dir){
+    m_direction = dir;
+}
+
+/******************************************
+               Square
+*******************************************/
+
+Square::Square(ObjectContainer objects) : m_objects(std::move(objects))
 {
-    if (m_types.size() == 1 && m_types.at(0) == ObjectType::ICON_EMPTY)
+}
+
+
+void Square::AddObject(Object object){
+    m_objects.emplace_back(object);
+    RemoveAllByType(ObjectType::EMPTY);
+}
+
+void Square::RemoveObject(Object object){
+    const auto itr = std::find(m_objects.begin(), m_objects.end(), object);
+    m_objects.erase(itr);
+
+    if (m_objects.empty()){
+	Object empty = Object(ObjectType::EMPTY);
+	m_objects.emplace_back(empty);
+    }
+}
+
+void Square::RemoveAllByType(ObjectType type){
+    // std::erase_if(m_objects.begin(), m_objects.end(),
+    // 		  [&](Object x){
+    // 		      return x.GetType() == type; 
+    // 		  });
+    auto itr = std::remove_if(m_objects.begin(), m_objects.end(), 
+    			      [&](Object x){
+    				  return x.GetType() == type; 
+    			      });
+    m_objects.erase(itr, m_objects.end());
+}
+
+
+ObjectContainer Square::GetObjects() const{
+    return m_objects;
+}
+
+ObjectContainer Square::GetObjectsByType(ObjectType type) const{
+    ObjectContainer res;
+    for (auto& obj: m_objects){
+	if (obj.GetType() == type){
+	    res.emplace_back(obj);
+	}
+    }
+    return res;
+}
+
+bool Square::HasType(ObjectType type) const
+{
+    auto itr = std::find_if(m_objects.begin(), m_objects.end(), 
+			    [&](Object x) { 
+				return (x.GetType() == type);
+			    });
+    return itr != m_objects.end();
+}
+
+
+bool Square::HasTextType() const
+{
+    for (auto& obj : m_objects)
     {
-        m_types.clear();
-	m_directions.clear();
+        if (!IsIconType(obj.GetType()))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Square::HasNounType() const
+{
+    for (auto& obj : m_objects)
+    {
+        if (IsNounType(obj.GetType()))
+        {
+            return true;
+        }
     }
 
-    /* 
-       Notes: (letra418)
-       TODO: remove this condition? (mainly to have multiple the same objects for SHUT/OPEN rules)
-     */
-    if (std::find(m_types.begin(), m_types.end(), type) == m_types.end())
+    return false;
+}
+
+bool Square::HasVerbType() const
+{
+    for (auto& obj : m_objects)
     {
-        m_types.emplace_back(type);
-	m_directions.emplace_back(dir);
+        if (IsVerbType(obj.GetType()))
+        {
+            return true;
+        }
     }
+
+    return false;
 }
 
-void Object::Remove(ObjectType type)
+bool Square::HasPropertyType() const
 {
-    m_types.erase(
-        std::remove_if(m_types.begin(), m_types.end(),
-                       [&](ObjectType& _type) { return type == _type; }),
-        m_types.end());
-
-    if (m_types.empty())
+    for (auto& obj : m_objects)
     {
-        m_types.emplace_back(ObjectType::ICON_EMPTY);
-	m_directions.emplace_back(Direction::NONE);
+        if (IsPropertyType(obj.GetType()))
+        {
+            return true;
+        }
     }
+
+    return false;
 }
 
-std::vector<ObjectType> Object::GetTypes() const
-{
-    return m_types;
-}
-std::vector<Direction> Object::GetDirections() const
-{
-    return m_directions;
-}
 
-bool Object::HasType(ObjectType type) const
+ObjectContainer Square::GetTextObjects() const
 {
-    return std::find(m_types.begin(), m_types.end(), type) != m_types.end();
-}
-
-bool Object::HasTextType() const
-{
-    // if (m_types.size() != 1)
-    // {
-    //     return false;
-    // }
-
-    // return static_cast<int>(m_types[0]) <=
-    //        static_cast<int>(ObjectType::ICON_TYPE);
-    for (auto& type : m_types)
+    std::vector<Object> objects;
+    for (auto& obj : m_objects)
     {
+	auto type = obj.GetType();
         if (!IsIconType(type))
         {
-            return true;
+            objects.emplace_back(type);
         }
     }
-    return false;
-}
-
-bool Object::HasNounType() const
-{
-    for (auto& type : m_types)
-    {
-        if (IsNounType(type))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool Object::HasVerbType() const
-{
-    for (auto& type : m_types)
-    {
-        if (IsVerbType(type))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool Object::HasPropertyType() const
-{
-    for (auto& type : m_types)
-    {
-        if (IsPropertyType(type))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
-std::vector<ObjectType> Object::GetTextTypes() const
-{
-    std::vector<ObjectType> types;
-    for (auto& type : m_types)
-    {
-        if (!IsIconType(type))
-        {
-            types.emplace_back(type);
-        }
-    }
-    return types;
+    return objects;
 }
 
 }  // namespace baba_is_auto

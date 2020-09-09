@@ -15,7 +15,7 @@
 
 namespace baba_is_auto
 {
-using Position = std::pair<std::size_t, std::size_t>;
+// using Position = std::pair<std::size_t, std::size_t>;
 
 //!
 //! \brief Map class.
@@ -33,6 +33,10 @@ class Map
     //! \param height The size of the height.
     Map(std::size_t width, std::size_t height);
 
+    //! Loads the data of the map.
+    //! \param filename The file name to load.
+    void Load(std::string_view filename);
+
     //! Resets map data.
     void Reset();
 
@@ -44,45 +48,42 @@ class Map
     //! \return The height of the map.
     std::size_t GetHeight() const;
 
-    //! Loads the data of the map.
-    //! \param filename The file name to load.
-    void Load(std::string_view filename);
-
     //! Adds an object to the map.
     //! \param x The x position.
     //! \param y The y position.
     //! \param type An object type to add to the map.
-    void AddObject(std::size_t x, std::size_t y, ObjectType type, Direction dir);
+    void AddObject(std::size_t x, std::size_t y, Object obj);
 
     //! Removes an object from the map.
     //! \param x The x position.
     //! \param y The y position.
     //! \param type An object type to remove from the map.
-    void RemoveObject(std::size_t x, std::size_t y, ObjectType type);
+    void RemoveObject(std::size_t x, std::size_t y, Object obj);
 
     //! Assigns an object to the map.
     //! \param x The x position.
     //! \param y The y position.
     //! \return An object at row and column.
-    Object& At(std::size_t x, std::size_t y);
+    Square& At(std::size_t x, std::size_t y);
 
     //! Assigns an object to the map.
     //! \param x The x position.
     //! \param y The y position.
     //! \return An object at row and column.
-    const Object& At(std::size_t x, std::size_t y) const;
+    const Square& At(std::size_t x, std::size_t y) const;
 
     //! Gets a list of icon positions.
     //! \param type An object type to get a list of positions.
     //! \return A list of icon positions.
-    std::vector<Position> GetPositions(ObjectType type) const;
+    // std::vector<Position> GetPositions(ObjectType type) const;
 
  private:
+    // std::size_t m_maxObjId = 0;
     std::size_t m_width = 0;
     std::size_t m_height = 0;
 
-    std::vector<Object> m_initObjects;
-    std::vector<Object> m_objects;
+    std::vector<Square> m_initSquares;
+    std::vector<Square> m_squares;
 };
 }  // namespace baba_is_auto
 

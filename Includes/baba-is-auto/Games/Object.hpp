@@ -9,8 +9,12 @@
 
 #include <baba-is-auto/Enums/GameEnums.hpp>
 
+
+#include <algorithm>
 #include <vector>
 #include <iostream>
+#include <unordered_set>
+
 
 namespace baba_is_auto
 {
@@ -28,73 +32,94 @@ namespace baba_is_auto
 //! A property is something that can be attached to noun words to alter their
 //! behavior.
 //!
+
 class Object
 {
  public:
-    //! Default constructor.
     Object() = default;
+    explicit Object(ObjectType type, Direction dir=Direction::NONE); 
+
+    bool operator==(const Object& rhs) const;
+
+    ObjectType GetType() const;
+    Direction GetDirection() const;
+    // std::unordered_set<ObjectType> GetProperties() const;
+    // bool HasProperty(ObjectType type) const;
+    // void AddProperty(ObjectType type);
+    // void RemoveProperty(ObjectType type);
+    void SetDirection(Direction dir);
+
+ private:
+    // std::size_t m_id;
+    ObjectType m_type;
+    Direction m_direction;
+    /* Notes (letra418):
+       m_properties are Currently not used.
+       Which is better properties are assigned to each object after parsing rules or to ask RuleManager whether an object has a property?
+     */
+    // std::unordered_set<ObjectType> m_properties;  
+
+};
+
+using ObjectContainer = std::vector<Object>;
+
+class Square
+{
+ public:
+    //! Default constructor.
+    Square() = default;
 
     //! Constructs an object.
     //! \param types A list of object types.
-    explicit Object(std::vector<ObjectType> types);
+    explicit Square(std::vector<Object> objects);
 
     //! Operator overloading for ==.
     //! \param rhs A right side of Object object.
     //! \return The value that indicates two objects are equal.
-    bool operator==(const Object& rhs) const;
+    // bool operator==(const Object& rhs) const;
 
     //! Adds an object type.
     //! \param type An object type to add.
-    void Add(ObjectType type, Direction dir);
+    void AddObject(Object obj);
 
     //! Removes an object type.
     //! \param type An object type to remove.
-    void Remove(ObjectType type);
+    void RemoveObject(Object obj);
 
-    //! Gets a list of object types.
-    //! \return A list of object types.
-    std::vector<ObjectType> GetTypes() const;
-    std::vector<Direction> GetDirections() const;
+    void RemoveAllByType(ObjectType type);
+
 
     //! Checks the object has specific type.
     //! \param type An object type to check.
     //! \return The flag indicates that the object has specific type.
     /* 
        *Note*
-       This function does not support properties induced by rules. 
+       This function does not support types induced by rules. 
        e.g., Even if there is a rule "WATER IS SINK" and ICON_WATER is at (x, y), 
        Map.At(x, y).HasType(ObjectType::SINK) returns false.
        In contrast, 
-       RuleManager.HasProperty(MAP.At(x, y).GetTypes(), ObjectType::SINK) 
-       returns true.
-     */
+       RuleManager.HasType(object, ObjectType::SINK) 
+       can return true.
+     */ 
     bool HasType(ObjectType type) const;
-
-    //! Checks the object has text type.
-    //! \return The flag indicates that the object has text type.
+    bool HasNounType() const;
+    bool HasVerbType() const;
+    bool HasPropertyType() const;
     bool HasTextType() const;
 
-    //! Checks the object has noun type.
-    //! \return The flag indicates that the object has noun type.
-    bool HasNounType() const;
 
-    //! Checks the object has verb type.
-    //! \return The flag indicates that the object has verb type.
-    bool HasVerbType() const;
 
-    //! Checks the object has property type.
-    //! \return The flag indicates that the object has property type.
-    bool HasPropertyType() const;
 
-    std::vector<ObjectType> GetTextTypes() const;
     bool isRule = false;
+    ObjectContainer GetObjects() const;
+    ObjectContainer GetObjectsByType(ObjectType type) const;
+    ObjectContainer GetTextObjects() const;
+
 
  private:
-    std::vector<ObjectType> m_types;
-    std::vector<Direction> m_directions;
-
-    // std::vector<ObjectType> m_directions;
+    ObjectContainer m_objects;
 };
+
 }  // namespace baba_is_auto
 
 #endif

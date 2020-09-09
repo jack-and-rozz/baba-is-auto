@@ -22,6 +22,5 @@ void AddRuleManager(pybind11::module& m)
         .def("GetRules", &RuleManager::GetRules)
         .def("GetAllRules", &RuleManager::GetAllRules)
         .def("GetNumRules", &RuleManager::GetNumRules)
-        .def("FindPlayer", &RuleManager::FindPlayer)
-        .def("HasProperty", &RuleManager::HasProperty);
+        .def("HasType", &RuleManager::HasType);
 }

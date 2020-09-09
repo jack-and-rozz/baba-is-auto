@@ -20,6 +20,5 @@ void AddGame(pybind11::module& m)
         .def("GetMap", static_cast<const Map& (Game::*)() const>(&Game::GetMap))
         .def("GetRuleManager", &Game::GetRuleManager)
         .def("GetPlayState", &Game::GetPlayState)
-        .def("GetPlayerIcon", &Game::GetPlayerIcon)
         .def("MovePlayer", &Game::MovePlayer);
 }
