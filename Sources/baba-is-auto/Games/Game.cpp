@@ -214,7 +214,6 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 
     // Check boundary
     if (_x < 0 || _x >= width || _y < 0 || _y >= height){
-	std::cout << "false" << std::endl;
         return false;
     }
 
@@ -269,7 +268,7 @@ void Game::ProcessMoveByYou(Direction dir)
 }
 
 void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
-		       Object srcObject){
+		       Object& srcObject){
     int _x;
     int _y;
     std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);

@@ -85,7 +85,7 @@ class Game
 
 
     void ProcessPush(std::size_t x, std::size_t y, Direction dir,
-		     Object obj);
+		     Object& obj);
 
     void UpdateObjects();
 
