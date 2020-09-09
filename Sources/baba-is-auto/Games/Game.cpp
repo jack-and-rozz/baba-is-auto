@@ -11,12 +11,8 @@ namespace baba_is_auto
 
 Game::Game(std::string_view filename)
 {
-    std::cout <<  "Load"  << std::endl;
     m_map.Load(filename);
-    std::cout <<  "ParseRules" << std::endl;
     ParseRules();
-
-    std::cout <<  "PlayState" << std::endl;
     m_playState = PlayState::PLAYING;
 }
 

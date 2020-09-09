@@ -16,16 +16,20 @@ Map::Map(std::size_t width, std::size_t height)
     m_initSquares.reserve(m_width * m_height);
     m_squares.reserve(m_width * m_height);
 
-    for (std::size_t i = 0; i < m_width * m_height; ++i)
-    {
-	Square sq = Square();
-	m_initSquares.emplace_back(sq);
-	m_squares.emplace_back(Square(sq));
-        // m_initObjects.emplace_back(
-        //     std::vector<ObjectType>{ ObjectType::ICON_EMPTY });
-        // m_objects.emplace_back(
-        //     std::vector<ObjectType>{ ObjectType::ICON_EMPTY });
-    }
+    // for (std::size_t i = 0; i < m_width * m_height; ++i)
+    // {
+    // 	std::cout <<  "Square sq = Square();"  << std::endl;
+
+    // 	Square sq = Square();
+
+    // 	std::cout <<  "m_initSquares.emplace_back(sq);"  << std::endl;
+    // 	m_initSquares.emplace_back(sq);
+    // 	m_squares.emplace_back(Square(sq));
+    //     // m_initObjects.emplace_back(
+    //     //     std::vector<ObjectType>{ ObjectType::ICON_EMPTY });
+    //     // m_objects.emplace_back(
+    //     //     std::vector<ObjectType>{ ObjectType::ICON_EMPTY });
+    // }
 }
 
 void Map::Load(std::string_view filename)
@@ -42,10 +46,11 @@ void Map::Load(std::string_view filename)
     for (std::size_t i = 0; i < m_width * m_height; ++i)
     {
         mapFile >> val;
+	//Object obj = ;
+	Square sq = Square(std::vector{Object(static_cast<ObjectType>(val))});
 
-	Object obj = Object(static_cast<ObjectType>(val));
-	m_initSquares[i].AddObject(obj);
-	m_squares[i].AddObject(obj);
+	m_initSquares.emplace_back(sq);
+	m_squares.emplace_back(sq);
         // m_initObjects.emplace_back(
         //     std::vector<ObjectType>{ static_cast<ObjectType>(val) });
         // m_objects.emplace_back(

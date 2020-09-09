@@ -62,6 +62,7 @@ void Object::SetDirection(Direction dir){
                Square
 *******************************************/
 
+
 Square::Square(ObjectContainer objects) : m_objects(std::move(objects))
 {
 }
@@ -69,7 +70,8 @@ Square::Square(ObjectContainer objects) : m_objects(std::move(objects))
 
 void Square::AddObject(Object object){
     m_objects.emplace_back(object);
-    RemoveAllByType(ObjectType::EMPTY);
+
+    RemoveAllByType(ObjectType::ICON_EMPTY);
 }
 
 void Square::RemoveObject(Object object){
@@ -77,7 +79,7 @@ void Square::RemoveObject(Object object){
     m_objects.erase(itr);
 
     if (m_objects.empty()){
-	Object empty = Object(ObjectType::EMPTY);
+	Object empty = Object(ObjectType::ICON_EMPTY);
 	m_objects.emplace_back(empty);
     }
 }

@@ -107,14 +107,10 @@ class Square
     bool HasPropertyType() const;
     bool HasTextType() const;
 
-
-
-
     bool isRule = false;
     ObjectContainer GetObjects() const;
     ObjectContainer GetObjectsByType(ObjectType type) const;
     ObjectContainer GetTextObjects() const;
-
 
  private:
     ObjectContainer m_objects;
