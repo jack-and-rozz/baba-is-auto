@@ -246,6 +246,12 @@ void Game::ProcessMoveByYou(Direction dir)
     int _x;
     int _y;
 
+    /*
+      TODO (bug): 
+      - 複数のYOUが並んでいるときにあるYOUが先に動いた結果，他のYOUをPUSHしてしまう
+      - 複数のYOUが重なっている時に一番上のYOUが先に動いた結果，次のYOUが動く時に進路をブロックしてバラけてしまう
+     */
+
     for (auto& [x, y, srcObject] : players){
 	if (!CanMove(x, y, dir, srcObject)) continue;
 	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
