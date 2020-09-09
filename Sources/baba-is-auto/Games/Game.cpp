@@ -203,7 +203,7 @@ std::tuple<int, int> GetPositionsOfPulledObject(std::size_t x, std::size_t y,
 
 
 bool Game::CanMove(std::size_t x, std::size_t y, Direction dir, 
-		   Object srcObject)
+		   const Object& srcObject) const
 {
     const auto width = static_cast<int>(m_map.GetWidth());
     const auto height = static_cast<int>(m_map.GetHeight());
@@ -253,6 +253,8 @@ void Game::ProcessMoveByYou(Direction dir)
      */
 
     for (auto& [x, y, srcObject] : players){
+	// srcObject.SetDirection(dir);
+
 	if (!CanMove(x, y, dir, srcObject)) continue;
 	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 	if ((x == _x) && (y == _y)) continue;
@@ -281,6 +283,8 @@ void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
 
     auto square = m_map.At(_x, _y);
     auto dstObjects = square.GetObjects();
+
+    // srcObject.SetDirection(dir);
 
     for (auto & obj: dstObjects){
 	if (m_ruleManager.HasType(obj, square, m_map, ObjectType::PUSH)){

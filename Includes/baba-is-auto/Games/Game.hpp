@@ -70,7 +70,7 @@ class Game
     //! \param y The y position.
     //! \param dir The direction to move.
     //! \return The flag indicates that an object can move.
-    bool CanMove(std::size_t x, std::size_t y, Direction dir, Object obj);
+    bool CanMove(std::size_t x, std::size_t y, Direction dir, const Object& obj) const;
 
     //! Processes the move of the player.
     //! \param x The x position.

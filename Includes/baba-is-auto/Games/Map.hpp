@@ -52,13 +52,13 @@ class Map
     //! \param x The x position.
     //! \param y The y position.
     //! \param type An object type to add to the map.
-    void AddObject(std::size_t x, std::size_t y, Object obj);
+    void AddObject(std::size_t x, std::size_t y, const Object& obj);
 
     //! Removes an object from the map.
     //! \param x The x position.
     //! \param y The y position.
     //! \param type An object type to remove from the map.
-    void RemoveObject(std::size_t x, std::size_t y, Object obj);
+    void RemoveObject(std::size_t x, std::size_t y, const Object& obj);
 
     //! Assigns an object to the map.
     //! \param x The x position.

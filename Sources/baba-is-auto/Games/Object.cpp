@@ -70,13 +70,13 @@ Square::Square(std::size_t x, std::size_t y, ObjectContainer objects)
 std::size_t Square::X(){return m_x;}
 std::size_t Square::Y(){return m_y;}
 
-void Square::AddObject(Object object){
+void Square::AddObject(const Object& object){
     m_objects.emplace_back(object);
 
     RemoveAllByType(ObjectType::ICON_EMPTY);
 }
 
-void Square::RemoveObject(Object object){
+void Square::RemoveObject(const Object& object){
     const auto itr = std::find(m_objects.begin(), m_objects.end(), object);
     m_objects.erase(itr);
 

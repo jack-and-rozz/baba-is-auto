@@ -75,12 +75,12 @@ std::size_t Map::GetHeight() const
 }
 
 
-void Map::AddObject(std::size_t x, std::size_t y, Object obj)
+void Map::AddObject(std::size_t x, std::size_t y, const Object& obj)
 {
     m_squares.at(y * m_width + x).AddObject(obj);
 }
 
-void Map::RemoveObject(std::size_t x, std::size_t y, Object obj)
+void Map::RemoveObject(std::size_t x, std::size_t y, const Object& obj)
 {
     m_squares.at(y * m_width + x).RemoveObject(obj);
 }

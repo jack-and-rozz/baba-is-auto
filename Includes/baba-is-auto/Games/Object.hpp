@@ -80,11 +80,11 @@ class Square
 
     //! Adds an object type.
     //! \param type An object type to add.
-    void AddObject(Object obj);
+    void AddObject(const Object& obj);
 
     //! Removes an object type.
     //! \param type An object type to remove.
-    void RemoveObject(Object obj);
+    void RemoveObject(const Object& obj);
 
     void RemoveAllByType(ObjectType type);
 
