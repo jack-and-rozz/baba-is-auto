@@ -45,7 +45,7 @@ class Object
 
     //! Adds an object type.
     //! \param type An object type to add.
-    void Add(ObjectType type);
+    void Add(ObjectType type, Direction dir);
 
     //! Removes an object type.
     //! \param type An object type to remove.
@@ -54,6 +54,7 @@ class Object
     //! Gets a list of object types.
     //! \return A list of object types.
     std::vector<ObjectType> GetTypes() const;
+    std::vector<Direction> GetDirections() const;
 
     //! Checks the object has specific type.
     //! \param type An object type to check.
@@ -90,6 +91,8 @@ class Object
 
  private:
     std::vector<ObjectType> m_types;
+    std::vector<Direction> m_directions;
+
     // std::vector<ObjectType> m_directions;
 };
 }  // namespace baba_is_auto

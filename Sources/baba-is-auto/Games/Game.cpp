@@ -68,10 +68,16 @@ void Game::MovePlayer(Direction dir)
 	  - The movement fails in the original game, but BABA can move by one square in this implementation.
 	  跳ね返ってる(YOUの移動+1, MOVEの移動-1)って考えればこの実装でも行ける？
 	 */
+
+	// 1-1. Movement by YOU 
 	ProcessMoveByYou(x, y, dir, m_playerIcon);
+	// 1つずつ動くので複数同じアイコンのYOUがあるとき動き終わった後のYouまた動いちゃう．IDで管理がやはりいる？
     }
 
+    // 2. Parsing Rules
     ParseRules();
+
+    // 3. 
     CheckPlayState();
 }
 
@@ -125,7 +131,6 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
 
 	    Rule newRule = Rule(type1, type2, type3);
 	    m_ruleManager.AddRule(newRule);
-	    // m_ruleManager.AddRule({ type1, type2, type3 });
 
 	    m_map.At(x, y).isRule = true;
 	    m_map.At(x + 1, y).isRule = true;
@@ -149,8 +154,6 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
 
 	    Rule newRule = Rule(type1, type2, type3);
 	    m_ruleManager.AddRule(newRule);
-	    
-	    // m_ruleManager.AddRule({ type1, type2, type3 });
 
             m_map.At(x, y).isRule = true;
             m_map.At(x, y + 1).isRule = true;
@@ -240,8 +243,8 @@ void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
 	}
     }
 
-    m_map.AddObject(_x, _y, typeOfEntityOnSrc);
     m_map.RemoveObject(x, y, typeOfEntityOnSrc);
+    m_map.AddObject(_x, _y, typeOfEntityOnSrc, dir);
     return;
 
     // const std::vector<ObjectType> tgtTypesAfterMove = m_map.At(_x, _y).GetTypes();
@@ -264,8 +267,8 @@ void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
 	    ProcessPush(_x, _y, dir, type);
 	}
     }
-    m_map.AddObject(_x, _y, typeOfEntityOnSrc);
     m_map.RemoveObject(x, y, typeOfEntityOnSrc);
+    m_map.AddObject(_x, _y, typeOfEntityOnSrc, dir);
     return;
 }
 
