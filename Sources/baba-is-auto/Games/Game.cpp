@@ -214,22 +214,23 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 
     // Check boundary
     if (_x < 0 || _x >= width || _y < 0 || _y >= height){
+	std::cout << "false" << std::endl;
         return false;
     }
 
-    auto square = m_map.At(x, y);
-    auto dstObjects = square.GetObjects();
+    auto dstSquare = m_map.At(_x, _y);
+    auto dstObjects = dstSquare.GetObjects();
 
     for (auto & obj: dstObjects){
 	/*
 	  Notes (letra418):
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
-	if (m_ruleManager.HasType(obj, square, m_map, ObjectType::PUSH) && 
+	if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::PUSH) && 
 	    !CanMove(_x, _y, dir, obj)){
 	    return false;
 	}
-	else if (m_ruleManager.HasType(obj, square, m_map, ObjectType::STOP)){
+	else if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::STOP)){
 	    return false;
 	}
     }

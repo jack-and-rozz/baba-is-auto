@@ -47,7 +47,6 @@ void Map::Load(std::string_view filename)
 	for (std::size_t x = 0; x < m_width; ++x){
 
         mapFile >> val;
-	//Object obj = ;
 	Square sq = Square(x, y, std::vector{Object(static_cast<ObjectType>(val))});
 
 	m_initSquares.emplace_back(sq);
