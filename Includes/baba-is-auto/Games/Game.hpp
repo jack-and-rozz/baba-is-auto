@@ -49,7 +49,7 @@ class Game
 
     //! Gets an icon type that represents player.
     //! \return An icon type that represents player.
-    ObjectType GetPlayerIcons() const;
+    // ObjectType GetPlayerIcons() const;
 
     //! Moves the icon that represents player.
     //! \param dir The direction to move the player.

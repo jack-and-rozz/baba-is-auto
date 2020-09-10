@@ -82,6 +82,12 @@ void Square::AddObject(const Object& object){
 
 void Square::RemoveObject(const Object& object){
     const auto itr = std::find(m_objects.begin(), m_objects.end(), object);
+
+    if (itr == m_objects.end()){
+	std::cout << "Exception: the object to be removed is not found in m_objects." << std::endl;
+	std::exit(EXIT_FAILURE);
+    }
+
     m_objects.erase(itr);
 
     if (m_objects.empty()){

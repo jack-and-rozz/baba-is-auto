@@ -9,7 +9,7 @@
 
 #include <baba-is-auto/Enums/GameEnums.hpp>
 
-
+#include <cstdlib>
 #include <algorithm>
 #include <vector>
 #include <iostream>

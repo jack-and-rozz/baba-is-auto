@@ -258,7 +258,7 @@ void Game::ProcessMoveByYou(Direction dir)
 	// 	  << y << " "
 	// 	  << std::endl;
 
-	// srcObject.SetDirection(dir); // Notes: Segmentation Fault
+	srcObject.SetDirection(dir); // Notes: Segmentation Fault
 
 	if (!CanMove(x, y, dir, srcObject)) continue;
 	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
