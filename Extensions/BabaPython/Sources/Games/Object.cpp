@@ -28,7 +28,10 @@ void AddObject(pybind11::module& m)
     pybind11::class_<Square>(m, "Square")
         .def(pybind11::init<>())
         .def(pybind11::init<std::size_t, std::size_t, ObjectContainer>())
-        .def("GetObjects", &Square::GetObjects)
+        .def("GetObjects", 
+	     [](const Square sq){
+		 return sq.GetObjects();
+	     })
         .def("HasType", &Square::HasType)
         .def("HasTextType", &Square::HasTextType)
         .def("HasNounType", &Square::HasNounType)
