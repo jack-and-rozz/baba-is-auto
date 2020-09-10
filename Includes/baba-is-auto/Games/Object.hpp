@@ -109,7 +109,6 @@ class Square
     bool HasTextType() const;
 
     bool isRule = false;
-    const ObjectContainer GetObjects2() const;
     const ObjectContainer GetObjects() const;
     ObjectContainer& GetObjects();
     // ObjectContainer GetObjectsByType(ObjectType type) const;

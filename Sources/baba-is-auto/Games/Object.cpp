@@ -109,10 +109,6 @@ void Square::RemoveAllByType(ObjectType type){
 }
 
 
-// std::vector<Object> Square::GetObjects() const{
-const ObjectContainer Square::GetObjects2() const{
-    return m_objects;
-}
 const ObjectContainer Square::GetObjects() const{
     return m_objects;
 }
