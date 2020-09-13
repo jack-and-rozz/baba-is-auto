@@ -92,7 +92,9 @@ class Game
     //! Checks the play state of the game.
     void CheckPlayState();
 
-    std::vector<std::tuple<size_t, size_t, Object>> FindObjectsByProperty(ObjectType property) const;
+    // std::vector<std::tuple<size_t, size_t, Object&>> FindObjectsByProperty(ObjectType property) const;
+    std::vector<std::tuple<size_t, size_t, Object*>> FindObjectsByProperty(ObjectType property) const;
+    // std::vector<std::tuple<size_t, size_t, Object>> FindObjectsByProperty(ObjectType property) const;
 
 
     Map m_map;

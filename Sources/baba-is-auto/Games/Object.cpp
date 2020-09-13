@@ -75,9 +75,8 @@ std::size_t Square::X(){return m_x;}
 std::size_t Square::Y(){return m_y;}
 
 void Square::AddObject(const Object& object){
-    m_objects.emplace_back(object);
-
     RemoveAllByType(ObjectType::ICON_EMPTY);
+    m_objects.emplace_back(object);
 }
 
 void Square::RemoveObject(const Object& object){
@@ -85,6 +84,21 @@ void Square::RemoveObject(const Object& object){
 
     if (itr == m_objects.end()){
 	std::cout << "Exception: the object to be removed is not found in m_objects." << std::endl;
+	std::cout << "Candidate" << std::endl;
+
+	for (auto& obj: m_objects){
+	    std::cout << static_cast<int>(obj.GetType()) 
+		      << " "
+		      << static_cast<int>(obj.GetDirection())
+		      << std::endl;
+	}
+	std::cout << "Target Object" << std::endl;
+
+	std::cout << static_cast<int>(object.GetType()) 
+		  << " "
+		  << static_cast<int>(object.GetDirection())
+		  << std::endl;
+
 	std::exit(EXIT_FAILURE);
     }
 
@@ -109,22 +123,16 @@ void Square::RemoveAllByType(ObjectType type){
 }
 
 
-const ObjectContainer Square::GetObjects() const{
+const ObjectContainer& Square::GetObjects() const{
     return m_objects;
 }
-ObjectContainer& Square::GetObjects(){
-    return m_objects;
-}
-
-// ObjectContainer Square::GetObjectsByType(ObjectType type) const{
-//     ObjectContainer res;
-//     for (auto& obj: m_objects){
-// 	if (obj.GetType() == type){
-// 	    res.emplace_back(obj);
-// 	}
-//     }
-//     return res;
+// ObjectContainer& Square::GetObjects(){
+//     return m_objects;
 // }
+
+ObjectContainer* Square::GetObjects2(){
+    return &m_objects;
+}
 
 bool Square::HasType(ObjectType type) const
 {
