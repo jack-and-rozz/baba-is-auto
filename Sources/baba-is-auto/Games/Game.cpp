@@ -300,8 +300,7 @@ void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
     auto dstSquare = m_map.At(_x, _y);
     // auto dstObjects = square.GetObjects();
     // const ObjectContainer dstObjects = dstSquare.GetObjects();
-    auto  dstObjects = dstSquare.GetObjects();
-
+    auto dstObjects = dstSquare.GetObjects();
 
     // srcObject.SetDirection(dir);
 
@@ -381,21 +380,31 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 	    auto square = m_map.At(x, y);
 	    ObjectContainer* objs = square.GetObjects2();
 	    // for (auto& obj: objs){
-	    for (auto& obj: *objs){
-		if (m_ruleManager.HasType(obj, square, m_map, property)){
+	    // for (auto& obj: objs){
+	    // for (ObjectContainer::const_iterator obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
+	    for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
+	    
+	    // for (auto itr )
+		if (m_ruleManager.HasType(*obj, square, m_map, property)){
 		    // auto itr = std::find(objs.begin(), objs.end(), obj);
 		    // std::cout << (itr == objs.end()) << std::endl;
 
 		    std::cout << "x, y = " << x << " " << y << std::endl;
 		    std::cout << "target YOU type: (type, dir)" 
-			      << static_cast<int>(obj.GetType()) << " "
-			      << static_cast<int>(obj.GetDirection()) 
+			      << static_cast<int>(obj->GetType()) << " "
+			      << static_cast<int>(obj->GetDirection()) 
 			      << std::endl;
+		    //size_t index = std::distance(objs->begin(), &obj);
+		    size_t index = std::distance(objs->begin(), obj);
+		    std::cout << "index, size = " 
+			      << index << " " << objs->size()
+			      << std::endl; 
 
-
-		    res.emplace_back(std::make_tuple(x, y, &obj));
-
-		    // res.emplace_back(std::make_tuple(x, y, obj));
+		    std::cout << "target YOU type2: (type, dir)" 
+			      << static_cast<int>(objs->at(index).GetType()) << " "
+			      << std::endl;
+		    // res.emplace_back(std::make_tuple(x, y, &obj));
+		    res.emplace_back(std::make_tuple(x, y, &(square.GetObjects2()->at(index))));
 		}
 	    }
         }
@@ -410,6 +419,7 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 			      << std::endl;
     }
 
+    std::exit(0);
     return res;
 }
 
