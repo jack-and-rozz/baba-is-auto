@@ -337,7 +337,7 @@ void Game::CheckPlayState()
         m_playState = PlayState::LOST;
         return;
     }
-    
+
     /*
       Notes (letra418): 
       this judge is imcomplete and will be fixed after implementing conditional operators such as ON and FENCING.
@@ -383,8 +383,6 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 	    // for (auto& obj: objs){
 	    // for (ObjectContainer::const_iterator obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
 	    for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
-	    
-	    // for (auto itr )
 		if (m_ruleManager.HasType(*obj, square, m_map, property)){
 		    // auto itr = std::find(objs.begin(), objs.end(), obj);
 		    // std::cout << (itr == objs.end()) << std::endl;
@@ -404,7 +402,8 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 			      << static_cast<int>(objs->at(index).GetType()) << " "
 			      << std::endl;
 		    // res.emplace_back(std::make_tuple(x, y, &obj));
-		    res.emplace_back(std::make_tuple(x, y, &(square.GetObjects2()->at(index))));
+		    // res.emplace_back(std::make_tuple(x, y, &(square.GetObjects2()->at(index))));
+		    res.emplace_back(std::make_tuple(x, y, &(objs->at(index))));
 		}
 	    }
         }
