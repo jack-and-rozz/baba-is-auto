@@ -77,6 +77,8 @@ class Map
     //! \return A list of icon positions.
     // std::vector<Position> GetPositions(ObjectType type) const;
 
+    Square At2(std::size_t x, std::size_t y) const;
+
  private:
     // std::size_t m_maxObjId = 0;
     std::size_t m_width = 0;

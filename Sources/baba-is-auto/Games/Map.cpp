@@ -96,5 +96,10 @@ const Square& Map::At(std::size_t x, std::size_t y) const
     return m_squares.at(y * m_width + x);
 }
 
+Square Map::At2(std::size_t x, std::size_t y) const
+{
+    return m_squares.at(y * m_width + x);
+}
+
 
 }  // namespace baba_is_auto

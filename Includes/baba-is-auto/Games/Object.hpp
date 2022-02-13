@@ -111,6 +111,8 @@ class Square
     bool isRule = false;
     // const ObjectContainer GetObjects() const;
     const ObjectContainer& GetObjects() const;
+    ObjectContainer& GetVariableObjects() const;
+
     // ObjectContainer& GetObjects();
     ObjectContainer* GetObjects2();
     ObjectContainer GetTextObjects() const;

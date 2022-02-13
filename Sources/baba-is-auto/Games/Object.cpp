@@ -75,8 +75,8 @@ std::size_t Square::X(){return m_x;}
 std::size_t Square::Y(){return m_y;}
 
 void Square::AddObject(const Object& object){
-    RemoveAllByType(ObjectType::ICON_EMPTY);
     m_objects.emplace_back(object);
+    RemoveAllByType(ObjectType::ICON_EMPTY);
 }
 
 void Square::RemoveObject(const Object& object){
@@ -123,12 +123,14 @@ void Square::RemoveAllByType(ObjectType type){
 }
 
 
+// const ObjectContainer& Square::GetObjects() const{
 const ObjectContainer& Square::GetObjects() const{
     return m_objects;
 }
-// ObjectContainer& Square::GetObjects(){
-//     return m_objects;
-// }
+
+ObjectContainer& Square::GetVariableObjects(){
+    return m_objects;
+}
 
 ObjectContainer* Square::GetObjects2(){
     return &m_objects;

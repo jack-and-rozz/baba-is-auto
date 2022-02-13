@@ -14,7 +14,7 @@
 #include <string>
 #include <iterator>
 #include <iostream>
-
+#include <typeinfo>
 namespace baba_is_auto
 {
 //!
@@ -94,7 +94,7 @@ class Game
     void CheckPlayState();
 
     // std::vector<std::tuple<size_t, size_t, Object&>> FindObjectsByProperty(ObjectType property) const;
-    std::vector<std::tuple<size_t, size_t, Object*>> FindObjectsByProperty(ObjectType property) const;
+    std::vector<std::tuple<size_t, size_t, Object*>> FindObjectsByProperty(ObjectType property);
     // std::vector<std::tuple<size_t, size_t, Object>> FindObjectsByProperty(ObjectType property) const;
 
 

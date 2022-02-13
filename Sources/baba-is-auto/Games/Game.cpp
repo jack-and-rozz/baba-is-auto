@@ -50,7 +50,9 @@ void Game::MovePlayer(Direction dir)
 {
 
     // 1-1. Movement by YOU
-    ProcessMoveByYou(dir);
+    if (dir != Direction::NONE){
+	ProcessMoveByYou(dir);
+    }
 
     // 2. Parsing Rules
     ParseRules();
@@ -241,6 +243,7 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 void Game::ProcessMoveByYou(Direction dir)
 {
 
+    // Object* で返しているので，add/removeによってアドレスが変更されると無効なアドレスを指してしまう？
     auto players = FindObjectsByProperty(ObjectType::YOU);
 
     int _x;
@@ -261,31 +264,31 @@ void Game::ProcessMoveByYou(Direction dir)
 
 	// std::cout << static_cast<int>(srcObject.GetDirection())
 	// 	  << std::endl;
-	// srcObject->SetDirection(dir); // Notes: Segmentation Fault
+	srcObject->SetDirection(dir); // Notes: Segmentation Fault
 	// srcObject->SetDirection(Direction::NONE); // Notes: Segmentation Fault
 
-	// if (!CanMove(x, y, dir, *srcObject)) continue;
+	if (!CanMove(x, y, dir, *srcObject)) continue;
 	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
-	// if ((x == _x) && (y == _y)) continue;
+	if ((x == _x) && (y == _y)) continue;
 
 	// auto square = m_map.At(_x, _y);
 	// auto dstObjects = square.GetObjects();
+	auto dstObjects = m_map.At(_x, _y).GetObjects();
 
-	// for (auto & obj: dstObjects){
-	//     if (m_ruleManager.HasType(obj, square, m_map, ObjectType::PUSH)){
-	// 	ProcessPush(_x, _y, dir, obj);
-	//     }
-	// }
+	for (auto & obj: dstObjects){
+	    if (m_ruleManager.HasType(obj, m_map.At(_x, _y), m_map, ObjectType::PUSH)){
+		ProcessPush(_x, _y, dir, obj);
+	    }
+	}
+
 	std::cout << "x, y = " << x << " " << y << std::endl;
 	std::cout << "target YOU type: (type, dir)" 
 		  << static_cast<int>(srcObject->GetType()) << " "
 		  << static_cast<int>(srcObject->GetDirection()) 
 		  << std::endl;
-	// m_map.RemoveObject(x, y, srcObject);
-	// m_map.AddObject(_x, _y, srcObject);
-	m_map.RemoveObject(x, y, *srcObject);
-	m_map.AddObject(_x, _y, *srcObject);
 
+	m_map.AddObject(_x, _y, *srcObject);
+	m_map.RemoveObject(x, y, *srcObject);  // 先にremoveすると所有者が居なくなってまずい？
     }
     // std::exit(0);
     return;
@@ -309,8 +312,8 @@ void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
 	    ProcessPush(_x, _y, dir, obj);
 	}
     }
-    m_map.RemoveObject(x, y, srcObject);
     m_map.AddObject(_x, _y, srcObject);
+    m_map.RemoveObject(x, y, srcObject);
     return;
 }
 
@@ -354,20 +357,9 @@ void Game::CheckPlayState()
 	    }
 	}
     }
-    // for (auto& rule : winRules){
-    //     const ObjectType winType = rule.GetSubject();
-    //     if (square.HasType(ConvertTextToIcon(winType))){
-    //         m_playState = PlayState::WON;
-    //     }
-    // }
 }
 
-// std::vector<std::tuple<size_t, size_t, Object>> Game::FindObjectsByProperty(ObjectType property) const{
-//     std::vector<std::tuple<size_t, size_t, Object>> res;
-
-// std::vector<std::tuple<size_t, size_t, Object&>> Game::FindObjectsByProperty(ObjectType property) const{
-//     std::vector<std::tuple<size_t, size_t, Object&>> res;
-std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(ObjectType property) const{
+std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(ObjectType property){
     std::vector<std::tuple<size_t, size_t, Object*>> res;
 
     const std::size_t width = m_map.GetWidth();
@@ -377,13 +369,24 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
-	    auto square = m_map.At(x, y);
-	    ObjectContainer* objs = square.GetObjects2();
+ 	    // ここで一時変数squareで参照を介するとアドレスがおかしくなる
+	    Square& square = m_map.At(x, y); 
+	    // ObjectContainer* objs = square.GetObjects2();
+
+	    auto& objs = square.GetVariableObjects();
+
+	    // こっちならOK
+	    // ObjectContainer* objs = m_map.At(x, y).GetObjects2();
+	    // std::cout << "typeid(square): " << typeid(square).name()  << std::endl;
+	    // std::cout << "typeid(m_map.At(x,y)): " << typeid(m_map.At(x,y)).name()  << std::endl;
+	    // std::cout << "Square: " << x << "," << y << " : " 
+	    // 	      << &square << std::endl;
+	    // std::cout << "m_map.At(x, y): " << x << "," << y << " : " 
+	    // 	      << &(m_map.At(x, y)) << std::endl;
+
 	    // for (auto& obj: objs){
-	    // for (auto& obj: objs){
-	    // for (ObjectContainer::const_iterator obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
 	    for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
-		if (m_ruleManager.HasType(*obj, square, m_map, property)){
+		if (m_ruleManager.HasType(*obj, m_map.At(x, y), m_map, property)){
 		    // auto itr = std::find(objs.begin(), objs.end(), obj);
 		    // std::cout << (itr == objs.end()) << std::endl;
 
@@ -418,7 +421,27 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 			      << std::endl;
     }
 
-    std::exit(0);
+    // ObjectContainer* objs00 = m_map.At(0,0).GetObjects2();
+    // for (auto obj = objs00->begin(), e = objs00->end(); obj != e; ++obj){ 
+    // 	std::cout << "At(0, 0)" << std::endl;
+    // 	std::cout << "target YOU type: (type)"
+    // 		  << static_cast<int>(obj->GetType()) << " "
+    // 		  << std::endl;
+    // }
+
+
+    // for (std::size_t y = 0; y < height; ++y){
+    //     for (std::size_t x = 0; x < width; ++x){
+    // 	    ObjectContainer* objs = m_map.At(x,y).GetObjects2();
+    // 	    for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
+    // 		std::cout << "At(" << x <<"," << y << ")" << std::endl;
+    // 		std::cout << "target YOU type: "
+    // 			  << static_cast<int>(obj->GetType()) << " "
+    // 			  << std::endl;
+    // 	    }
+    // 	}
+    // }
+    // std::exit(0);
     return res;
 }
 
