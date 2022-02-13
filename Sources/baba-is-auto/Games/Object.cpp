@@ -63,7 +63,9 @@ void Object::SetDirection(Direction dir){
 /******************************************
                Square
 *******************************************/
-
+/*
+  This is a class to manage objects on a square of a map.
+*/
 
 Square::Square(std::size_t x, std::size_t y, ObjectContainer objects) 
     : m_x(x), m_y(y), m_objects(std::move(objects))
@@ -75,11 +77,20 @@ std::size_t Square::X(){return m_x;}
 std::size_t Square::Y(){return m_y;}
 
 void Square::AddObject(const Object& object){
+    std::cout << "<AddObject>" << std::endl;
+    std::cout << "(x, y, obj_type) = "
+	      << m_x << " " << m_y << " " << static_cast<int>(object.GetType())
+	      << std::endl;
     m_objects.emplace_back(object);
     RemoveAllByType(ObjectType::ICON_EMPTY);
 }
 
 void Square::RemoveObject(const Object& object){
+    std::cout << "<RemoveObject>" << std::endl;
+    std::cout << "(x, y, obj_type) = "
+	      << m_x << " " << m_y << " " << static_cast<int>(object.GetType())
+	      << std::endl;
+
     const auto itr = std::find(m_objects.begin(), m_objects.end(), object);
 
     if (itr == m_objects.end()){
@@ -87,14 +98,16 @@ void Square::RemoveObject(const Object& object){
 	std::cout << "Candidate" << std::endl;
 
 	for (auto& obj: m_objects){
-	    std::cout << static_cast<int>(obj.GetType()) 
+	    std::cout << "(obj_type, obj_dir) = "
+		      << static_cast<int>(obj.GetType()) 
 		      << " "
 		      << static_cast<int>(obj.GetDirection())
 		      << std::endl;
 	}
 	std::cout << "Target Object" << std::endl;
 
-	std::cout << static_cast<int>(object.GetType()) 
+	std::cout << "(obj_type, obj_dir) = "
+		  << static_cast<int>(object.GetType()) 
 		  << " "
 		  << static_cast<int>(object.GetDirection())
 		  << std::endl;

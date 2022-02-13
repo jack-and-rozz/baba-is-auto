@@ -242,6 +242,7 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 // 			    Object srcObject)
 void Game::ProcessMoveByYou(Direction dir)
 {
+    std::cout << "<ProcessMoveByYou: start>" << std::endl;
 
     // Object* で返しているので，add/removeによってアドレスが変更されると無効なアドレスを指してしまう？
     auto players = FindObjectsByProperty(ObjectType::YOU);
@@ -254,7 +255,7 @@ void Game::ProcessMoveByYou(Direction dir)
       - 複数のYOUが並んでいるときにあるYOUが先に動いた結果，他のYOUをPUSHしてしまう
       - 複数のYOUが重なっている時に一番上のYOUが先に動いた結果，次のYOUが動く時に進路をブロックしてバラけてしまう
      */
-    std::cout << "ProcessMoveByYou: main loop" << std::endl;
+
     for (auto& [x, y, srcObject] : players){
 	// std::cout << static_cast<int>(srcObject.GetType()) << " "
 	// 	  << static_cast<int>(srcObject.GetDirection()) << " "
@@ -265,7 +266,17 @@ void Game::ProcessMoveByYou(Direction dir)
 	// std::cout << static_cast<int>(srcObject.GetDirection())
 	// 	  << std::endl;
 	srcObject->SetDirection(dir); // Notes: Segmentation Fault
-	// srcObject->SetDirection(Direction::NONE); // Notes: Segmentation Fault
+
+	std::cout << "ProcessMoveByYou: (x, y, type, dir) = " 
+		  << x << " " << y << " " 
+		  << static_cast<int>(srcObject->GetType()) << " "
+		  << static_cast<int>(srcObject->GetDirection())
+		  << std::endl;
+	// std::cout << "target YOU: (obj_type, obj_dir) = " 
+	// 	  << static_cast<int>(srcObject->GetType()) << " "
+	// 	  << static_cast<int>(srcObject->GetDirection()) 
+	// 	  << std::endl;
+
 
 	if (!CanMove(x, y, dir, *srcObject)) continue;
 	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
@@ -281,14 +292,8 @@ void Game::ProcessMoveByYou(Direction dir)
 	    }
 	}
 
-	std::cout << "x, y = " << x << " " << y << std::endl;
-	std::cout << "target YOU type: (type, dir)" 
-		  << static_cast<int>(srcObject->GetType()) << " "
-		  << static_cast<int>(srcObject->GetDirection()) 
-		  << std::endl;
-
 	m_map.AddObject(_x, _y, *srcObject);
-	m_map.RemoveObject(x, y, *srcObject);  // 先にremoveすると所有者が居なくなってまずい？
+	m_map.RemoveObject(x, y, *srcObject);  // 先にremoveすると所有者が居なくなってまずいので後？
     }
     // std::exit(0);
     return;
@@ -365,7 +370,7 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
     const std::size_t width = m_map.GetWidth();
     const std::size_t height = m_map.GetHeight();
 
-    std::cout << "FindObjectsByProperty" <<  std::endl;
+    std::cout << "<FindObjectsByProperty>" <<  std::endl;
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
@@ -392,22 +397,22 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 		    // std::cout << (itr == objs.end()) << std::endl;
 
 		    std::cout << "x, y = " << x << " " << y << std::endl;
-		    std::cout << "target YOU type: (type, dir)" 
+		    std::cout << "target YOU, (obj_id, dir_id) = "
 			      << static_cast<int>(obj->GetType()) << " "
-			      << static_cast<int>(obj->GetDirection()) 
+			      << static_cast<int>(obj->GetDirection())
 			      << std::endl;
 		    //size_t index = std::distance(objs->begin(), &obj);
 		    // size_t index = std::distance(objs->begin(), obj);
 		    size_t index = std::distance(objs.begin(), obj);
 
 		    // ============= DEBUG =============== 
-		    std::cout << "index, size = " 
-		    	      << index << " " << objs.size()
-		    	      << std::endl; 
+		    // std::cout << "index, size = " 
+		    // 	      << index << " " << objs.size()
+		    // 	      << std::endl; 
 
-		    std::cout << "target YOU type2: (type, dir)" 
-		    	      << static_cast<int>(objs.at(index).GetType()) << " "
-		    	      << std::endl;
+		    // std::cout << "target YOU type2: (type, dir)" 
+		    // 	      << static_cast<int>(objs.at(index).GetType()) << " "
+		    // 	      << std::endl;
 
 
 		    // res.emplace_back(std::make_tuple(x, y, &obj));
