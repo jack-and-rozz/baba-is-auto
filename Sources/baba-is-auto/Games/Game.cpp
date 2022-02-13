@@ -385,7 +385,8 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 	    // 	      << &(m_map.At(x, y)) << std::endl;
 
 	    // for (auto& obj: objs){
-	    for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
+	    //for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
+	    for (auto obj = objs.begin(), e = objs.end(); obj != e; ++obj){ 
 		if (m_ruleManager.HasType(*obj, m_map.At(x, y), m_map, property)){
 		    // auto itr = std::find(objs.begin(), objs.end(), obj);
 		    // std::cout << (itr == objs.end()) << std::endl;
@@ -396,17 +397,23 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 			      << static_cast<int>(obj->GetDirection()) 
 			      << std::endl;
 		    //size_t index = std::distance(objs->begin(), &obj);
-		    size_t index = std::distance(objs->begin(), obj);
+		    // size_t index = std::distance(objs->begin(), obj);
+		    size_t index = std::distance(objs.begin(), obj);
+
+		    // ============= DEBUG =============== 
 		    std::cout << "index, size = " 
-			      << index << " " << objs->size()
-			      << std::endl; 
+		    	      << index << " " << objs.size()
+		    	      << std::endl; 
 
 		    std::cout << "target YOU type2: (type, dir)" 
-			      << static_cast<int>(objs->at(index).GetType()) << " "
-			      << std::endl;
+		    	      << static_cast<int>(objs.at(index).GetType()) << " "
+		    	      << std::endl;
+
+
 		    // res.emplace_back(std::make_tuple(x, y, &obj));
 		    // res.emplace_back(std::make_tuple(x, y, &(square.GetObjects2()->at(index))));
-		    res.emplace_back(std::make_tuple(x, y, &(objs->at(index))));
+		    // res.emplace_back(std::make_tuple(x, y, &(objs->at(index))));
+		    res.emplace_back(std::make_tuple(x, y, &(objs.at(index))));
 		}
 	    }
         }
