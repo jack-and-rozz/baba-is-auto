@@ -210,8 +210,8 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
     const auto width = static_cast<int>(m_map.GetWidth());
     const auto height = static_cast<int>(m_map.GetHeight());
 
-    int _x;
-    int _y;
+    int _x; // after move
+    int _y; // after move
     std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 
     // Check boundary
@@ -227,11 +227,14 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 	  Notes (letra418):
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
+
+	// return false if one of objects at the target postion cannot move to the direction
 	if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::PUSH) && 
 	    !CanMove(_x, _y, dir, obj)){
 	    return false;
 	}
 	else if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::STOP)){
+	    // add STOP & PUSH
 	    return false;
 	}
     }
@@ -242,7 +245,7 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 // 			    Object srcObject)
 void Game::ProcessMoveByYou(Direction dir)
 {
-    std::cout << "<ProcessMoveByYou: start>" << std::endl;
+    std::cout << "<ProcessMoveByYou: startt>" << std::endl;
 
     // Object* で返しているので，add/removeによってアドレスが変更されると無効なアドレスを指してしまう？
     auto players = FindObjectsByProperty(ObjectType::YOU);
@@ -256,34 +259,22 @@ void Game::ProcessMoveByYou(Direction dir)
       - 複数のYOUが重なっている時に一番上のYOUが先に動いた結果，次のYOUが動く時に進路をブロックしてバラけてしまう
      */
 
-    for (auto& [x, y, srcObject] : players){
-	// std::cout << static_cast<int>(srcObject.GetType()) << " "
-	// 	  << static_cast<int>(srcObject.GetDirection()) << " "
-	// 	  << x << " "
-	// 	  << y << " "
-	// 	  << std::endl;
+    // ルール適用の優先度でループを分けた方が良い？
 
-	// std::cout << static_cast<int>(srcObject.GetDirection())
-	// 	  << std::endl;
-	srcObject->SetDirection(dir); // Notes: Segmentation Fault
+    for (auto& [x, y, srcObject] : players){
+	srcObject.SetDirection(dir); // Notes: Segmentation Fault
 
 	std::cout << "ProcessMoveByYou: (x, y, type, dir) = " 
 		  << x << " " << y << " " 
-		  << static_cast<int>(srcObject->GetType()) << " "
-		  << static_cast<int>(srcObject->GetDirection())
+		  << static_cast<int>(srcObject.GetType()) << " "
+		  << static_cast<int>(srcObject.GetDirection())
 		  << std::endl;
-	// std::cout << "target YOU: (obj_type, obj_dir) = " 
-	// 	  << static_cast<int>(srcObject->GetType()) << " "
-	// 	  << static_cast<int>(srcObject->GetDirection()) 
-	// 	  << std::endl;
 
 
-	if (!CanMove(x, y, dir, *srcObject)) continue;
+	if (!CanMove(x, y, dir, srcObject)) continue;
 	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 	if ((x == _x) && (y == _y)) continue;
 
-	// auto square = m_map.At(_x, _y);
-	// auto dstObjects = square.GetObjects();
 	auto dstObjects = m_map.At(_x, _y).GetObjects();
 
 	for (auto & obj: dstObjects){
@@ -291,9 +282,17 @@ void Game::ProcessMoveByYou(Direction dir)
 		ProcessPush(_x, _y, dir, obj);
 	    }
 	}
+	std::cout << "<Before: AddObject> (type, dir) = " 
+		  << static_cast<int>(srcObject.GetType()) << " "
+		  << static_cast<int>(srcObject.GetDirection())
+		  << std::endl;
+	m_map.AddObject(_x, _y, srcObject);
 
-	m_map.AddObject(_x, _y, *srcObject);
-	m_map.RemoveObject(x, y, *srcObject);  // 先にremoveすると所有者が居なくなってまずいので後？
+	std::cout << "<After: AddObject> (type, dir) = " 
+		  << static_cast<int>(srcObject.GetType()) << " "
+		  << static_cast<int>(srcObject.GetDirection())
+		  << std::endl;
+	m_map.RemoveObject(x, y, srcObject);  // 先にremoveすると所有者が居なくなってまずいので後？
     }
     // std::exit(0);
     return;
@@ -301,16 +300,19 @@ void Game::ProcessMoveByYou(Direction dir)
 
 void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
 		       Object& srcObject){
+
+    std::cout << "<ProcessPush>: (x, y, type, dir) = " 
+	      << x << " " << y << " " 
+	      << static_cast<int>(srcObject.GetType()) << " "
+	      << static_cast<int>(dir)
+	      << std::endl;
+    
     int _x;
     int _y;
     std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
 
     auto dstSquare = m_map.At(_x, _y);
-    // auto dstObjects = square.GetObjects();
-    // const ObjectContainer dstObjects = dstSquare.GetObjects();
     auto dstObjects = dstSquare.GetObjects();
-
-    // srcObject.SetDirection(dir);
 
     for (auto & obj: dstObjects){
 	if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::PUSH)){
@@ -354,7 +356,7 @@ void Game::CheckPlayState()
     // Player wins when an object has WIN at the same position as one of YOUs.
     // auto winRules = m_ruleManager.GetRules(ObjectType::WIN);
 
-    for (auto& [x, y, playerObj] : players){
+    for (auto& [x, y, _] : players){
 	auto square = m_map.At(x, y);
 	for (auto& objOnPlayer: square.GetObjects()){
 	    if (m_ruleManager.HasType(objOnPlayer, square, m_map, ObjectType::WIN)){
@@ -364,8 +366,8 @@ void Game::CheckPlayState()
     }
 }
 
-std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(ObjectType property){
-    std::vector<std::tuple<size_t, size_t, Object*>> res;
+std::vector<PositionalObject> Game::FindObjectsByProperty(ObjectType property){
+    std::vector<PositionalObject> res;
 
     const std::size_t width = m_map.GetWidth();
     const std::size_t height = m_map.GetHeight();
@@ -378,7 +380,8 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 	    Square& square = m_map.At(x, y); 
 	    // ObjectContainer* objs = square.GetObjects2();
 
-	    auto& objs = square.GetVariableObjects();
+	    // auto& objs = square.GetVariableObjects();
+	    ObjectContainer& objs = square.GetVariableObjects();
 
 	    // こっちならOK
 	    // ObjectContainer* objs = m_map.At(x, y).GetObjects2();
@@ -393,67 +396,24 @@ std::vector<std::tuple<size_t, size_t, Object*>> Game::FindObjectsByProperty(Obj
 	    //for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
 	    for (auto obj = objs.begin(), e = objs.end(); obj != e; ++obj){ 
 		if (m_ruleManager.HasType(*obj, m_map.At(x, y), m_map, property)){
-		    // auto itr = std::find(objs.begin(), objs.end(), obj);
-		    // std::cout << (itr == objs.end()) << std::endl;
-
-		    std::cout << "x, y = " << x << " " << y << std::endl;
-		    std::cout << "target YOU, (obj_id, dir_id) = "
-			      << static_cast<int>(obj->GetType()) << " "
-			      << static_cast<int>(obj->GetDirection())
-			      << std::endl;
-		    //size_t index = std::distance(objs->begin(), &obj);
-		    // size_t index = std::distance(objs->begin(), obj);
 		    size_t index = std::distance(objs.begin(), obj);
 
-		    // ============= DEBUG =============== 
-		    // std::cout << "index, size = " 
-		    // 	      << index << " " << objs.size()
-		    // 	      << std::endl; 
-
-		    // std::cout << "target YOU type2: (type, dir)" 
-		    // 	      << static_cast<int>(objs.at(index).GetType()) << " "
-		    // 	      << std::endl;
-
-
-		    // res.emplace_back(std::make_tuple(x, y, &obj));
-		    // res.emplace_back(std::make_tuple(x, y, &(square.GetObjects2()->at(index))));
-		    // res.emplace_back(std::make_tuple(x, y, &(objs->at(index))));
-		    res.emplace_back(std::make_tuple(x, y, &(objs.at(index))));
+		    // res.emplace_back(std::make_tuple(x, y, &(objs.at(index))));
+		    res.emplace_back(std::tie(x, y, objs.at(index)));
 		}
 	    }
         }
     }
 
-    std::cout << "res" << std::endl;
+    std::cout << "<FindObjectsByProperty: results>" << std::endl;
     for (auto& [xx, yy, player] : res){
 		    std::cout << "x, y = " << xx << " " << yy << std::endl;
 		    std::cout << "target YOU type: (type, dir)" 
-			      << static_cast<int>(player->GetType()) << " "
-			      << static_cast<int>(player->GetDirection()) 
+			      << static_cast<int>(player.GetType()) << " "
+			      << static_cast<int>(player.GetDirection()) 
 			      << std::endl;
     }
 
-    // ObjectContainer* objs00 = m_map.At(0,0).GetObjects2();
-    // for (auto obj = objs00->begin(), e = objs00->end(); obj != e; ++obj){ 
-    // 	std::cout << "At(0, 0)" << std::endl;
-    // 	std::cout << "target YOU type: (type)"
-    // 		  << static_cast<int>(obj->GetType()) << " "
-    // 		  << std::endl;
-    // }
-
-
-    // for (std::size_t y = 0; y < height; ++y){
-    //     for (std::size_t x = 0; x < width; ++x){
-    // 	    ObjectContainer* objs = m_map.At(x,y).GetObjects2();
-    // 	    for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
-    // 		std::cout << "At(" << x <<"," << y << ")" << std::endl;
-    // 		std::cout << "target YOU type: "
-    // 			  << static_cast<int>(obj->GetType()) << " "
-    // 			  << std::endl;
-    // 	    }
-    // 	}
-    // }
-    // std::exit(0);
     return res;
 }
 

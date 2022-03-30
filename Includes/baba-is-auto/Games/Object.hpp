@@ -63,6 +63,7 @@ class Object
 };
 
 using ObjectContainer = std::vector<Object>;
+using PositionalObject = std::tuple<size_t, size_t, Object&>;
 
 class Square
 {
@@ -109,13 +110,9 @@ class Square
     bool HasTextType() const;
 
     bool isRule = false;
-    // const ObjectContainer GetObjects() const;
     const ObjectContainer& GetObjects() const;
-    // ObjectContainer& GetVariableObjects() const;
     ObjectContainer& GetVariableObjects();
 
-    // ObjectContainer& GetObjects();
-    ObjectContainer* GetObjects2();
     ObjectContainer GetTextObjects() const;
 
     std::size_t X();

@@ -14,7 +14,6 @@ namespace baba_is_auto
 /******************************************
                 Object
 *******************************************/
-// Object::Object(std::size_t id, ObjectType type, Direction dir=Direction::NONE){
 Object::Object(ObjectType type, Direction dir){	
     // m_id = id;
     m_type = type;
@@ -42,22 +41,6 @@ void Object::SetType(ObjectType type){
 void Object::SetDirection(Direction dir){
     m_direction = dir;
 }
-
-// std::unordered_set<ObjectType> Object::GetProperties() const{
-//     return m_properties;
-// }
-
-// bool Object::HasProperty(ObjectType type) const{
-//     return m_properties.find(type) != m_properties.end();
-// }
-
-// void Object::AddProperty(ObjectType type){
-//     m_properties.insert(type);
-// }
-
-// void Object::RemoveProperty(ObjectType type){
-//     m_properties.erase(type);
-// }
 
 
 /******************************************
@@ -131,8 +114,9 @@ void Square::RemoveAllByType(ObjectType type){
     auto itr = std::remove_if(m_objects.begin(), m_objects.end(), 
     			      [&](Object x){
     				  return x.GetType() == type; 
-    			      });
-    m_objects.erase(itr, m_objects.end());
+    			      }); 
+    // As the removed elements still exist at the end of the container, [itr, m_object.end()) needs to be cut off.
+    m_objects.erase(itr, m_objects.end()); 
 }
 
 
@@ -145,9 +129,6 @@ ObjectContainer& Square::GetVariableObjects(){
     return m_objects;
 }
 
-ObjectContainer* Square::GetObjects2(){
-    return &m_objects;
-}
 
 bool Square::HasType(ObjectType type) const
 {
