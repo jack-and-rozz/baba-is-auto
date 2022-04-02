@@ -416,7 +416,7 @@ std::vector<PositionalObject> Game::FindObjectsByProperty(ObjectType property){
 		}
 	    }
         }
-    } 
+    }
 
     std::cout << "<FindObjectsByProperty: results>" << std::endl;
     for (auto& [xx, yy, player] : res){

@@ -74,6 +74,9 @@ class Square
     //! Default constructor.
     Square() = default;
 
+    // Copy constructor.
+    Square(const Square&);
+
     //! Constructs an object.
     //! \param types A list of object types.
     // explicit Square(std::size_t x, std::size_t y, std::vector<Object> objects);

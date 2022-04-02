@@ -55,6 +55,13 @@ Square::Square(std::size_t x, std::size_t y, ObjectContainer objects)
 {
     m_objects.reserve(100);
 }
+Square::Square(const Square& sq){
+    m_x = sq.m_x;
+    m_y = sq.m_y;
+    m_objects = sq.m_objects;
+    m_objects.reserve(100);
+
+}
 
 
 std::size_t Square::X(){return m_x;}
@@ -65,6 +72,7 @@ void Square::AddObject(const Object& object){
     std::cout << "(x, y, obj_type) = "
 	      << m_x << " " << m_y << " " << static_cast<int>(object.GetType())
 	      << std::endl;
+    std::cout << "Capacity: " << m_objects.capacity() << std::endl;
     std::cout << "m_objects address: " 
 	      << &m_objects[0]
 	      << std::endl;
