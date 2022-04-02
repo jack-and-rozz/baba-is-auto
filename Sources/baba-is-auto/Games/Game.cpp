@@ -271,9 +271,12 @@ void Game::ProcessMoveByYou(Direction dir)
      */
 
     // ルール適用の優先度でループを分けた方が良い？
-
     for (auto& [x, y, srcObject] : players){
 	srcObject.SetDirection(dir); // Notes: Segmentation Fault
+    }
+
+    for (auto& [x, y, srcObject] : players){
+	// srcObject.SetDirection(dir); // Notes: Segmentation Fault
 
 	std::cout << "ProcessMoveByYou: (x, y, type, dir) = " 
 		  << x << " " << y << " " 
@@ -294,10 +297,23 @@ void Game::ProcessMoveByYou(Direction dir)
 	//     }
 	// }
 
+	for (auto& [x2, y2, srcObject2] : players){
+	    std::cout << "x, y, type, dir, addr = "
+		      << x2 << " " 
+		      << y2 << " " 
+		      << static_cast<int>(srcObject2.GetType()) << " " 
+		      << static_cast<int>(srcObject2.GetDirection()) << " " 
+		      << &srcObject2 << " " 
+		      << std::endl;;
+	}
+
+
 	std::cout << "<Before: AddObject> (type, dir) = " 
 		  << static_cast<int>(srcObject.GetType()) << " "
 		  << static_cast<int>(srcObject.GetDirection())
 		  << std::endl;
+
+
 	m_map.AddObject(_x, _y, srcObject);
 	// 要素数が増えた時点でvectorのアドレスが再確保されるのでFindObjectsByPropertyで獲得した参照が壊れる
 
@@ -379,6 +395,7 @@ void Game::CheckPlayState()
     }
 }
 
+
 std::vector<PositionalObject> Game::FindObjectsByProperty(ObjectType property){
     std::vector<PositionalObject> res;
 
@@ -399,7 +416,7 @@ std::vector<PositionalObject> Game::FindObjectsByProperty(ObjectType property){
 		}
 	    }
         }
-    }
+    } 
 
     std::cout << "<FindObjectsByProperty: results>" << std::endl;
     for (auto& [xx, yy, player] : res){

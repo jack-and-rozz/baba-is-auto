@@ -62,8 +62,11 @@ class Object
 
 };
 
+// using ObjectContainer = std::vector<Object&>;
 using ObjectContainer = std::vector<Object>;
+
 using PositionalObject = std::tuple<size_t, size_t, Object&>;
+//using PositionalObject = std::tuple<size_t, size_t, Object>;
 
 class Square
 {
@@ -73,7 +76,8 @@ class Square
 
     //! Constructs an object.
     //! \param types A list of object types.
-    explicit Square(std::size_t x, std::size_t y, std::vector<Object> objects);
+    // explicit Square(std::size_t x, std::size_t y, std::vector<Object> objects);
+    explicit Square(std::size_t x, std::size_t y, ObjectContainer objects);
 
     //! Operator overloading for ==.
     //! \param rhs A right side of Object object.

@@ -53,6 +53,7 @@ void Object::SetDirection(Direction dir){
 Square::Square(std::size_t x, std::size_t y, ObjectContainer objects) 
     : m_x(x), m_y(y), m_objects(std::move(objects))
 {
+    m_objects.reserve(100);
 }
 
 
@@ -64,14 +65,23 @@ void Square::AddObject(const Object& object){
     std::cout << "(x, y, obj_type) = "
 	      << m_x << " " << m_y << " " << static_cast<int>(object.GetType())
 	      << std::endl;
+    std::cout << "m_objects address: " 
+	      << &m_objects[0]
+	      << std::endl;
     m_objects.emplace_back(object);
+    std::cout << "m_objects address: " 
+	      << &m_objects[0]
+	      << std::endl;
+
     RemoveAllByType(ObjectType::ICON_EMPTY);
 }
 
 void Square::RemoveObject(const Object& object){
     std::cout << "<RemoveObject>" << std::endl;
-    std::cout << "(x, y, obj_type) = "
-	      << m_x << " " << m_y << " " << static_cast<int>(object.GetType())
+    std::cout << "(x, y, obj_type, dir) = "
+	      << m_x << " " << m_y << " " 
+	      << static_cast<int>(object.GetType())  << " " 
+	      << static_cast<int>(object.GetDirection())
 	      << std::endl;
 
     const auto itr = std::find(m_objects.begin(), m_objects.end(), object);
@@ -194,7 +204,8 @@ bool Square::HasPropertyType() const
 
 ObjectContainer Square::GetTextObjects() const
 {
-    std::vector<Object> objects;
+    //std::vector<Object> objects;
+    ObjectContainer objects;
     for (auto& obj : m_objects)
     {
 	auto type = obj.GetType();
