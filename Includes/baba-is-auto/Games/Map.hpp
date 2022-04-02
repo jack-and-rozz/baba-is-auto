@@ -72,12 +72,12 @@ class Map
     //! \return An object at row and column.
     const Square& At(std::size_t x, std::size_t y) const;
 
-    //! Gets a list of icon positions.
-    //! \param type An object type to get a list of positions.
-    //! \return A list of icon positions.
-    // std::vector<Position> GetPositions(ObjectType type) const;
+    // //! Gets a list of icon positions.
+    // //! \param type An object type to get a list of positions.
+    // //! \return A list of icon positions.
+    // // std::vector<Position> GetPositions(ObjectType type) const;
 
-    Square At2(std::size_t x, std::size_t y) const;
+    // Square At2(std::size_t x, std::size_t y) const;
 
  private:
     // std::size_t m_maxObjId = 0;

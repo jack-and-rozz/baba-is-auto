@@ -49,6 +49,19 @@ PlayState Game::GetPlayState() const
 void Game::MovePlayer(Direction dir)
 {
 
+    /*
+      Notes (letra418):
+      Strictly speaking, the current order of each process is incomplete.
+      In the original game, parsing of rules occurs many times and the flow is as follows:
+      1. normal movements (YOU, move, fear, shift, etc.) -> rule parsing
+      2. object changes (is, direction changes, etc.)-> rule parsing
+      3. special movements (tele, fall, etc.) -> rule parsing
+      4. object vanishments (sink, weak, hot/melt, etc.) -> rule parsing
+
+      <ref>
+      - https://w.atwiki.jp/babais/pages/42.html#id_12b90dfb
+    */
+
     // 1-1. Movement by YOU
     if (dir != Direction::NONE){
 	ProcessMoveByYou(dir);
@@ -241,8 +254,6 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
     return true;
 }
 
-// void Game::ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
-// 			    Object srcObject)
 void Game::ProcessMoveByYou(Direction dir)
 {
     std::cout << "<ProcessMoveByYou: startt>" << std::endl;
@@ -277,16 +288,18 @@ void Game::ProcessMoveByYou(Direction dir)
 
 	auto dstObjects = m_map.At(_x, _y).GetObjects();
 
-	for (auto & obj: dstObjects){
-	    if (m_ruleManager.HasType(obj, m_map.At(_x, _y), m_map, ObjectType::PUSH)){
-		ProcessPush(_x, _y, dir, obj);
-	    }
-	}
+	// for (auto & obj: dstObjects){
+	//     if (m_ruleManager.HasType(obj, m_map.At(_x, _y), m_map, ObjectType::PUSH)){
+	// 	ProcessPush(_x, _y, dir, obj);
+	//     }
+	// }
+
 	std::cout << "<Before: AddObject> (type, dir) = " 
 		  << static_cast<int>(srcObject.GetType()) << " "
 		  << static_cast<int>(srcObject.GetDirection())
 		  << std::endl;
 	m_map.AddObject(_x, _y, srcObject);
+	// 要素数が増えた時点でvectorのアドレスが再確保されるのでFindObjectsByPropertyで獲得した参照が壊れる
 
 	std::cout << "<After: AddObject> (type, dir) = " 
 		  << static_cast<int>(srcObject.GetType()) << " "
@@ -376,28 +389,11 @@ std::vector<PositionalObject> Game::FindObjectsByProperty(ObjectType property){
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
- 	    // ここで一時変数squareで参照を介するとアドレスがおかしくなる
 	    Square& square = m_map.At(x, y); 
-	    // ObjectContainer* objs = square.GetObjects2();
-
-	    // auto& objs = square.GetVariableObjects();
 	    ObjectContainer& objs = square.GetVariableObjects();
-
-	    // こっちならOK
-	    // ObjectContainer* objs = m_map.At(x, y).GetObjects2();
-	    // std::cout << "typeid(square): " << typeid(square).name()  << std::endl;
-	    // std::cout << "typeid(m_map.At(x,y)): " << typeid(m_map.At(x,y)).name()  << std::endl;
-	    // std::cout << "Square: " << x << "," << y << " : " 
-	    // 	      << &square << std::endl;
-	    // std::cout << "m_map.At(x, y): " << x << "," << y << " : " 
-	    // 	      << &(m_map.At(x, y)) << std::endl;
-
-	    // for (auto& obj: objs){
-	    //for (auto obj = objs->begin(), e = objs->end(); obj != e; ++obj){ 
 	    for (auto obj = objs.begin(), e = objs.end(); obj != e; ++obj){ 
 		if (m_ruleManager.HasType(*obj, m_map.At(x, y), m_map, property)){
 		    size_t index = std::distance(objs.begin(), obj);
-
 		    // res.emplace_back(std::make_tuple(x, y, &(objs.at(index))));
 		    res.emplace_back(std::tie(x, y, objs.at(index)));
 		}
