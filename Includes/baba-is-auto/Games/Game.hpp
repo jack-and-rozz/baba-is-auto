@@ -58,6 +58,8 @@ class Game
     void MovePlayer(Direction dir);
 
     Object& GetObject(std::size_t obj_id, std::size_t x, std::size_t y);
+    std::vector<PositionalObject> FindObjectIdsAndPositionsByProperty(ObjectType property);
+
  private:
     //! Parses a list of rules.
     void ParseRules();
@@ -94,7 +96,6 @@ class Game
     //! Checks the play state of the game.
     void CheckPlayState();
 
-    std::vector<PositionalObject> FindObjectIdsAndPositionsByProperty(ObjectType property);
     void SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir);
     void ResolveAllMoveFlags();
 

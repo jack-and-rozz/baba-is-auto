@@ -23,6 +23,7 @@ void AddObject(pybind11::module& m)
 			 (left.GetDirection() == right.GetDirection()));
              })
 	.def("GetType", &Object::GetType)
+	.def("GetId", &Object::GetId)
 	.def("GetDirection", &Object::GetDirection);
 
     pybind11::class_<Square>(m, "Square")

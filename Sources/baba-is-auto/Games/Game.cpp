@@ -52,11 +52,13 @@ void Game::MovePlayer(Direction dir)
     /*
       Notes (letra418):
       Strictly speaking, the current order of each process is incomplete.
-      In the original game, parsing of rules occurs many times and the flow is as follows:
+      In the original baba-is-you, parsing of rules occurs many times in a step and the flow is as follows:
       1. normal movements (YOU, move, fear, shift, etc.) -> rule parsing
-      2. object changes (is, direction changes, etc.)-> rule parsing
+      2. object changes (is, up/down/right/left, etc.)-> rule parsing
       3. special movements (tele, fall, etc.) -> rule parsing
       4. object vanishments (sink, weak, hot/melt, etc.) -> rule parsing
+
+      e.g., when a flag is on a belt and making BELT IS SHIFT, the flag is shifted in the next step. However, when making BELT IS TELE, the flag teleports in the current step.
 
       <ref>
       - https://w.atwiki.jp/babais/pages/42.html#id_12b90dfb
@@ -241,6 +243,10 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 	  Notes (letra418):
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
+	// if (m_ruleManager.HasType(obj, ObjectType::YOU) && 
+	//     CanMove(_x, _y, dir, obj)){
+	//     return true;
+	// }
 
 	if (m_ruleManager.HasType(obj, ObjectType::PUSH) && 
 	    !CanMove(_x, _y, dir, obj)){
@@ -285,8 +291,12 @@ void Game::ProcessMoveByYou(Direction dir)
       - YOUやMOVEで動く本人もフラグで管理して解決を後回しにする必要がある？
         * 縦に並んだYOUや、MOVEで同じマスに入るときなど、移動後のobjectにpush flagを立ててしまう可能性あり。
 	* ただ、そのフラグの付与はPUSHの処理よりも優先される。例えばMOVEで動くはずのobjが先に他のobjによりフラグを付与されてしまって、本来のMOVEを行えない事がありうる
-
      */
+    /*
+      Notes (letra418):
+    */
+
+
 
     for (auto& [obj_id, x, y] : you_ids){
  	Object& srcObject = GetObject(obj_id, x, y);
@@ -298,12 +308,13 @@ void Game::ProcessMoveByYou(Direction dir)
 	// 	  << static_cast<int>(srcObject.GetDirection())
 	// 	  << std::endl;
 
-
 	if (!CanMove(x, y, dir, srcObject)) continue;
 	srcObject.SetMoveDirection(dir);
     }
 
-    // Setting move flags to pushed objected needs to be run after setting them to YOU objects (i.e., main objects trying to move.)
+    // Setting a move direction to pushed objects needs to be done after setting it to moving objects.
+    // Otherwise a pushed object can set a different direction to moving objects.
+
     for (auto& [obj_id, x, y] : you_ids){
  	Object& srcObject = GetObject(obj_id, x, y);
 	if (!CanMove(x, y, dir, srcObject)) continue;
@@ -481,6 +492,7 @@ void Game::ResolveAllMoveFlags(){
     const std::size_t width = m_map.GetWidth();
     const std::size_t height = m_map.GetHeight();
 
+    std::vector<std::tuple<size_t, size_t, size_t, size_t, size_t>> objsMoveSchedule;
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
 	    Square& square = m_map.At(x, y); 
@@ -488,13 +500,28 @@ void Game::ResolveAllMoveFlags(){
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
 		Direction dir = itr->GetMoveDirection();
 		if (dir != Direction::NONE){
+		    std::cout << "ResolveAllMoveFlags" << std::endl;
+		    std::cout << static_cast<int>(itr->GetType()) << " "
+			      << static_cast<int>(itr->GetId()) << " "
+			      << x << " "
+			      << y << " "
+			      << std::endl;
+
 		    std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
 		    itr->SetMoveDirection(Direction::NONE);
-		    m_map.AddObject(_x, _y, *itr);
-		    m_map.RemoveObject(x, y, *itr);
+
+		    std::tuple<size_t, size_t, size_t, size_t, size_t> s;
+		    s = std::make_tuple(itr->GetId(), x, y, _x, _y);
+		    objsMoveSchedule.emplace_back(s);
 		}
 	    }
         }
+    }
+
+    for (auto& [obj_id, x, y, _x, _y] : objsMoveSchedule){
+	Object& obj = GetObject(obj_id, x, y);
+	m_map.AddObject(_x, _y, obj);
+	m_map.RemoveObject(x, y, obj);
     }
 
 }
