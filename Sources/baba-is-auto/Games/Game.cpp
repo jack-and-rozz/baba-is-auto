@@ -158,7 +158,7 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
     }
 }
 
-std::tuple<int, int> GetPositionsAfterMove(std::size_t x, std::size_t y, 
+std::tuple<int, int> GetPositionAfterMove(std::size_t x, std::size_t y, 
 					   Direction dir)
 {
     int _x = static_cast<int>(x);
@@ -187,8 +187,8 @@ std::tuple<int, int> GetPositionsAfterMove(std::size_t x, std::size_t y,
     return std::forward_as_tuple(_x, _y);
 }
 
-std::tuple<int, int> GetPositionsOfPulledObject(std::size_t x, std::size_t y, 
-						Direction dir)
+std::tuple<int, int> GetPositionOfPulledObject(std::size_t x, std::size_t y, 
+					       Direction dir)
 {
     int _x = static_cast<int>(x);
     int _y = static_cast<int>(y);
@@ -225,7 +225,7 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 
     int _x; // after move
     int _y; // after move
-    std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
+    std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
 
     // Check boundary
     if (_x < 0 || _x >= width || _y < 0 || _y >= height){
@@ -242,11 +242,11 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
 
-	if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::PUSH) && 
+	if (m_ruleManager.HasType(obj, ObjectType::PUSH) && 
 	    !CanMove(_x, _y, dir, obj)){
 	    return false;
 	}
-	else if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::STOP)){
+	else if (m_ruleManager.HasType(obj, ObjectType::STOP)){
 	    return false;
 	}
     }
@@ -263,7 +263,7 @@ void Game::ProcessMoveByYou(Direction dir)
     int _y;
 
     /*
-      TODO (bug): 
+      MEMO: 
       - 複数のYOUが並んでいるときにあるYOUが先に動いた結果，他のYOUをPUSHしてしまう
       - 複数のYOUが重なっている時に一番上のYOUが先に動いた結果，次のYOUが動く時に進路をブロックしてバラけてしまう
       - 変化を記録するような形にする？
@@ -280,81 +280,86 @@ void Game::ProcessMoveByYou(Direction dir)
 	  * 同じものを２方向からPUSHした際に、ベクトル演算のようにはならない
 	  * ただし２方向から同じマスにPUSHされた時は重なるので同時に判定されている
 	* 今動いている途中かどうかを示すフラグが必要？
-	  * moveした各objectを始点として、そこからPUSH可能なものが続く限りどちら方向に動くかフラグを立て、それらを順に解決？２方向からの場合どちらかが優先
+	  * moveした各objectを始点として、そこからPUSH可能なものが続く限りどちら方向に動くかフラグを立て、それらを順に解決？２方向からの場合どちらかが優先。同じルールで2回PUSHされることはないはず。
+
+      - YOUやMOVEで動く本人もフラグで管理して解決を後回しにする必要がある？
+        * 縦に並んだYOUや、MOVEで同じマスに入るときなど、移動後のobjectにpush flagを立ててしまう可能性あり。
+	* ただ、そのフラグの付与はPUSHの処理よりも優先される。例えばMOVEで動くはずのobjが先に他のobjによりフラグを付与されてしまって、本来のMOVEを行えない事がありうる
 
      */
 
     for (auto& [obj_id, x, y] : you_ids){
-	Object& srcObject = GetObject(obj_id, x, y);
-	srcObject.SetDirection(dir); // Notes: Segmentation Fault
-    }
-
-    for (auto& [obj_id, x, y] : you_ids){
  	Object& srcObject = GetObject(obj_id, x, y);
+	srcObject.SetDirection(dir); // Notes: Segmentation Fault
 
-	std::cout << "ProcessMoveByYou: (x, y, type, dir) = " 
-		  << x << " " << y << " " 
-		  << static_cast<int>(srcObject.GetType()) << " "
-		  << static_cast<int>(srcObject.GetDirection())
-		  << std::endl;
+	// std::cout << "ProcessMoveByYou: (x, y, type, dir) = " 
+	// 	  << x << " " << y << " " 
+	// 	  << static_cast<int>(srcObject.GetType()) << " "
+	// 	  << static_cast<int>(srcObject.GetDirection())
+	// 	  << std::endl;
 
 
 	if (!CanMove(x, y, dir, srcObject)) continue;
-	std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
-	if ((x == _x) && (y == _y)) continue;
-
-	auto dstObjects = m_map.At(_x, _y).GetObjects();
-
-	for (auto & obj: dstObjects){
-	    if (m_ruleManager.HasType(obj, m_map.At(_x, _y), m_map, ObjectType::PUSH)){
-		ProcessPush(_x, _y, dir, obj);
-	    }
-	}
-
-	std::cout << "<Before: AddObject> (type, dir) = " 
-		  << static_cast<int>(srcObject.GetType()) << " "
-		  << static_cast<int>(srcObject.GetDirection())
-		  << std::endl;
-
-
-	m_map.AddObject(_x, _y, srcObject);
-
-	std::cout << "<After: AddObject> (type, dir) = " 
-		  << static_cast<int>(srcObject.GetType()) << " "
-		  << static_cast<int>(srcObject.GetDirection())
-		  << std::endl;
-	m_map.RemoveObject(x, y, srcObject);  // 先にremoveすると所有者が居なくなってまずいので後？
+	srcObject.SetMoveDirection(dir);
     }
-    // std::exit(0);
+
+    // Setting move flags to pushed objected needs to be run after setting them to YOU objects (i.e., main objects trying to move.)
+    for (auto& [obj_id, x, y] : you_ids){
+ 	Object& srcObject = GetObject(obj_id, x, y);
+	if (!CanMove(x, y, dir, srcObject)) continue;
+ 	std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+	SetPushedDirToObjects(_x, _y, dir);
+    }
+    ResolveAllMoveFlags();
+
+
+    // // Call AddObject first to prevent memory freeing
+    // m_map.AddObject(_x, _y, srcObject);
+    // m_map.RemoveObject(x, y, srcObject);
+
+
+    // you_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
+    // for (auto& [obj_id, _x, _y] : you_ids){
+    // 	//std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+    // 	auto dstObjects = m_map.At(_x, _y).GetObjects();
+
+    // 	for (auto & obj: dstObjects){
+    // 	    if (m_ruleManager.HasType(obj, ObjectType::PUSH)){
+    // 		//ProcessPush(_x, _y, dir, obj);
+    // 	    }
+    // 	}
+    // }
+
+
     return;
 }
 
 
-void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
-		       Object& srcObject){
+// void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
+// 		       Object& srcObject){
 
-    std::cout << "<ProcessPush>: (x, y, type, dir) = " 
-	      << x << " " << y << " " 
-	      << static_cast<int>(srcObject.GetType()) << " "
-	      << static_cast<int>(dir)
-	      << std::endl;
+//     std::cout << "<ProcessPush>: (x, y, type, dir) = " 
+// 	      << x << " " << y << " " 
+// 	      << static_cast<int>(srcObject.GetType()) << " "
+// 	      << static_cast<int>(dir)
+// 	      << std::endl;
     
-    int _x;
-    int _y;
-    std::tie(_x, _y) = GetPositionsAfterMove(x, y, dir);
+//     int _x;
+//     int _y;
+//     std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
 
-    auto dstSquare = m_map.At(_x, _y);
-    auto dstObjects = dstSquare.GetObjects();
+//     auto dstSquare = m_map.At(_x, _y);
+//     auto dstObjects = dstSquare.GetObjects();
 
-    for (auto & obj: dstObjects){
-	if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::PUSH)){
-	    ProcessPush(_x, _y, dir, obj);
-	}
-    }
-    m_map.AddObject(_x, _y, srcObject);
-    m_map.RemoveObject(x, y, srcObject);
-    return;
-}
+//     for (auto & obj: dstObjects){
+// 	if (m_ruleManager.HasType(obj, ObjectType::PUSH)){
+// 	    ProcessPush(_x, _y, dir, obj);
+// 	}
+//     }
+//     m_map.AddObject(_x, _y, srcObject);
+//     m_map.RemoveObject(x, y, srcObject);
+//     return;
+// }
 
 
 void Game::UpdateObjects(){
@@ -391,7 +396,7 @@ void Game::CheckPlayState() // todo
     for (auto& [_, x, y] : you_ids){
 	auto square = m_map.At(x, y);
 	for (auto& objOnPlayer: square.GetObjects()){
-	    if (m_ruleManager.HasType(objOnPlayer, square, m_map, ObjectType::WIN)){
+	    if (m_ruleManager.HasType(objOnPlayer, ObjectType::WIN)){
 		m_playState = PlayState::WON;
 	    }
 	}
@@ -412,7 +417,7 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectTy
 	    Square& square = m_map.At(x, y); 
 	    ObjectContainer& objs = square.GetVariableObjects();
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
-		if (m_ruleManager.HasType(*itr, m_map.At(x, y), m_map, property)){
+		if (m_ruleManager.HasType(*itr, property)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
 		    // std::tuple t = std::tie(itr->GetId(), x, y);
 		    res.emplace_back(t);
@@ -441,6 +446,56 @@ Object& Game::GetObject(std::size_t obj_id, std::size_t x, std::size_t y){
 	      << std::endl;
 
     std::exit(EXIT_FAILURE);
+}
+
+void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
+    // Recursively add pushed_flag to PUSH objects on squares.
+    // This function stops when no PUSH objects exist on the next square.
+
+    ObjectContainer& objs = m_map.At(x, y).GetVariableObjects();
+    bool continue_pushing = false;
+    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
+	if (m_ruleManager.HasType(*itr, ObjectType::PUSH)){
+	    // Skipped if an object was already pushed from another direction (e.g., MOVE objects can push an object from two directions).
+	    if (itr->GetMoveDirection() == Direction::NONE){
+		itr->SetMoveDirection(dir);
+		itr->SetDirection(dir);
+		continue_pushing = true;
+	    }
+	}
+    }
+    // Continue pushing if at least one of objects is pushed to the direction.
+    if (continue_pushing){
+	int _x;
+	int _y;
+	std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+	SetPushedDirToObjects(_x, _y, dir);
+    }
+    return;
+}
+
+
+void Game::ResolveAllMoveFlags(){
+    int _x; 
+    int _y;
+    const std::size_t width = m_map.GetWidth();
+    const std::size_t height = m_map.GetHeight();
+
+    for (std::size_t y = 0; y < height; ++y){
+        for (std::size_t x = 0; x < width; ++x){
+	    Square& square = m_map.At(x, y); 
+	    ObjectContainer& objs = square.GetVariableObjects();
+	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
+		Direction dir = itr->GetMoveDirection();
+		if (dir != Direction::NONE){
+		    std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+		    itr->SetMoveDirection(Direction::NONE);
+		    m_map.AddObject(_x, _y, *itr);
+		    m_map.RemoveObject(x, y, *itr);
+		}
+	    }
+        }
+    }
 
 }
 

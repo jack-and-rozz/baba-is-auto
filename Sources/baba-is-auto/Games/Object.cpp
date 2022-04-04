@@ -19,6 +19,7 @@ Object::Object(ObjectType type, Direction dir){
     // m_id = id;
     m_type = type;
     m_direction = dir;
+    m_move_direction = Direction::NONE;
 }
 
 bool Object::operator==(const Object& rhs) const
@@ -38,12 +39,20 @@ Direction Object::GetDirection() const{
     return m_direction;
 }
 
+Direction Object::GetMoveDirection() const{
+    return m_move_direction;
+}
+
 void Object::SetType(ObjectType type){
     m_type = type;
 }
 
 void Object::SetDirection(Direction dir){
     m_direction = dir;
+}
+
+void Object::SetMoveDirection(Direction dir){
+    m_move_direction = dir;
 }
 
 std::size_t Object::SetNewObjectId(){
@@ -80,28 +89,31 @@ std::size_t Square::Y(){return m_y;}
 
 void Square::AddObject(const Object& object){
     std::cout << "<AddObject>" << std::endl;
-    std::cout << "(x, y, obj_type) = "
+    std::cout << "(obj_id, x, y, obj_type) = "
+	      << object.GetId() << " "
 	      << m_x << " " << m_y << " " << static_cast<int>(object.GetType())
 	      << std::endl;
-    std::cout << "Capacity: " << m_objects.capacity() << std::endl;
-    std::cout << "m_objects address: " 
-	      << &m_objects[0]
-	      << std::endl;
+    // <debug>: to check reallocation of std::vector.
+    // std::cout << "Capacity: " << m_objects.capacity() << std::endl;
+    // std::cout << "m_objects address: " 
+    // 	      << &m_objects[0]
+    // 	      << std::endl;
     m_objects.emplace_back(object);
-    std::cout << "m_objects address: " 
-	      << &m_objects[0]
-	      << std::endl;
+    // std::cout << "m_objects address: " 
+    // 	      << &m_objects[0]
+    // 	      << std::endl;
 
     RemoveAllByType(ObjectType::ICON_EMPTY);
 }
 
 void Square::RemoveObject(const Object& object){
     std::cout << "<RemoveObject>" << std::endl;
-    std::cout << "(x, y, obj_type, dir) = "
+    std::cout << "(obj_id, x, y, obj_type) = "
+	      << object.GetId() << " "
 	      << m_x << " " << m_y << " " 
 	      << static_cast<int>(object.GetType())  << " " 
-	      << static_cast<int>(object.GetDirection())
 	      << std::endl;
+	      //<< static_cast<int>(object.GetDirection())
 
     const auto itr = std::find(m_objects.begin(), m_objects.end(), object);
 

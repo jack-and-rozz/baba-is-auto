@@ -45,17 +45,21 @@ class Object
     std::size_t GetId() const;
     ObjectType GetType() const;
     Direction GetDirection() const;
+    Direction GetMoveDirection() const;
     // std::unordered_set<ObjectType> GetProperties() const;
     // bool HasProperty(ObjectType type) const;
     // void AddProperty(ObjectType type);
     // void RemoveProperty(ObjectType type);
     void SetType(ObjectType type);
     void SetDirection(Direction dir);
+    void SetMoveDirection(Direction dir);
     std::size_t SetNewObjectId();
  private:
     std::size_t m_id;
     ObjectType m_type;
     Direction m_direction;
+    Direction m_move_direction;
+
     /* Notes (letra418):
        m_properties are Currently not used.
        Which is better properties are assigned to each object after parsing rules or to ask RuleManager whether an object has a property?

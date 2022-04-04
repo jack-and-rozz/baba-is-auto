@@ -87,8 +87,7 @@ class Game
     void ProcessMoveByYou(Direction dir);
 
 
-    void ProcessPush(std::size_t x, std::size_t y, Direction dir,
-		     Object& obj);
+    // void ProcessPush(std::size_t x, std::size_t y, Direction dir, Object& obj);
 
     void UpdateObjects();
 
@@ -96,7 +95,8 @@ class Game
     void CheckPlayState();
 
     std::vector<PositionalObject> FindObjectIdsAndPositionsByProperty(ObjectType property);
-
+    void SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir);
+    void ResolveAllMoveFlags();
 
     Map m_map;
     RuleManager m_ruleManager;

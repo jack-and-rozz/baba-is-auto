@@ -48,8 +48,7 @@ class RuleManager
     //! \param property The property to check.
     //! \return The flag indicates that an object has specific property.
 
-    bool HasType(const Object& obj, const Square& sq, const Map& map, 
-		 ObjectType type) const;
+    bool HasType(const Object& obj, ObjectType type) const;
 
  private:
     std::vector<Rule> m_rules;
