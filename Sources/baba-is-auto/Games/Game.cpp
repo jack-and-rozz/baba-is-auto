@@ -235,19 +235,18 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
     auto dstSquare = m_map.At(_x, _y);
     const ObjectContainer dstObjects = dstSquare.GetObjects();
 
+    // return false if one of objects at the target postion cannot move to the direction
     for (auto & obj: dstObjects){
 	/*
 	  Notes (letra418):
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
 
-	// return false if one of objects at the target postion cannot move to the direction
 	if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::PUSH) && 
 	    !CanMove(_x, _y, dir, obj)){
 	    return false;
 	}
 	else if (m_ruleManager.HasType(obj, dstSquare, m_map, ObjectType::STOP)){
-	    // add STOP & PUSH
 	    return false;
 	}
     }
@@ -258,8 +257,7 @@ void Game::ProcessMoveByYou(Direction dir)
 {
     std::cout << "<ProcessMoveByYou: startt>" << std::endl;
 
-    // Object* で返しているので，add/removeによってアドレスが変更されると無効なアドレスを指してしまう？
-    auto players = FindObjectsByProperty(ObjectType::YOU);
+    auto you_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
 
     int _x;
     int _y;
@@ -268,15 +266,31 @@ void Game::ProcessMoveByYou(Direction dir)
       TODO (bug): 
       - 複数のYOUが並んでいるときにあるYOUが先に動いた結果，他のYOUをPUSHしてしまう
       - 複数のYOUが重なっている時に一番上のYOUが先に動いた結果，次のYOUが動く時に進路をブロックしてバラけてしまう
+      - 変化を記録するような形にする？
+        * youの移動とyouの移動の効果を別にする必要もある
+
+      - ルール適用の優先度でループを分けた方が良い？
+
+      - 同時解決の処理順についてはどうなる？
+        * 基本的に同じルールによる処理は同時
+	  * MOVEによるPUSHでTEXTを重ねられるし、自身がPushでも重なることが出来る
+	* 一斉にMOVEして、一斉にPUSHすれば解決する？
+
+	* ただし同じルールによって引き起こされるPUSHには順序がある場合も
+	  * 同じものを２方向からPUSHした際に、ベクトル演算のようにはならない
+	  * ただし２方向から同じマスにPUSHされた時は重なるので同時に判定されている
+	* 今動いている途中かどうかを示すフラグが必要？
+	  * moveした各objectを始点として、そこからPUSH可能なものが続く限りどちら方向に動くかフラグを立て、それらを順に解決？２方向からの場合どちらかが優先
+
      */
 
-    // ルール適用の優先度でループを分けた方が良い？
-    for (auto& [x, y, srcObject] : players){
+    for (auto& [obj_id, x, y] : you_ids){
+	Object& srcObject = GetObject(obj_id, x, y);
 	srcObject.SetDirection(dir); // Notes: Segmentation Fault
     }
 
-    for (auto& [x, y, srcObject] : players){
-	// srcObject.SetDirection(dir); // Notes: Segmentation Fault
+    for (auto& [obj_id, x, y] : you_ids){
+ 	Object& srcObject = GetObject(obj_id, x, y);
 
 	std::cout << "ProcessMoveByYou: (x, y, type, dir) = " 
 		  << x << " " << y << " " 
@@ -291,22 +305,11 @@ void Game::ProcessMoveByYou(Direction dir)
 
 	auto dstObjects = m_map.At(_x, _y).GetObjects();
 
-	// for (auto & obj: dstObjects){
-	//     if (m_ruleManager.HasType(obj, m_map.At(_x, _y), m_map, ObjectType::PUSH)){
-	// 	ProcessPush(_x, _y, dir, obj);
-	//     }
-	// }
-
-	for (auto& [x2, y2, srcObject2] : players){
-	    std::cout << "x, y, type, dir, addr = "
-		      << x2 << " " 
-		      << y2 << " " 
-		      << static_cast<int>(srcObject2.GetType()) << " " 
-		      << static_cast<int>(srcObject2.GetDirection()) << " " 
-		      << &srcObject2 << " " 
-		      << std::endl;;
+	for (auto & obj: dstObjects){
+	    if (m_ruleManager.HasType(obj, m_map.At(_x, _y), m_map, ObjectType::PUSH)){
+		ProcessPush(_x, _y, dir, obj);
+	    }
 	}
-
 
 	std::cout << "<Before: AddObject> (type, dir) = " 
 		  << static_cast<int>(srcObject.GetType()) << " "
@@ -315,7 +318,6 @@ void Game::ProcessMoveByYou(Direction dir)
 
 
 	m_map.AddObject(_x, _y, srcObject);
-	// 要素数が増えた時点でvectorのアドレスが再確保されるのでFindObjectsByPropertyで獲得した参照が壊れる
 
 	std::cout << "<After: AddObject> (type, dir) = " 
 		  << static_cast<int>(srcObject.GetType()) << " "
@@ -326,6 +328,7 @@ void Game::ProcessMoveByYou(Direction dir)
     // std::exit(0);
     return;
 }
+
 
 void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
 		       Object& srcObject){
@@ -361,7 +364,7 @@ void Game::UpdateObjects(){
 
 
 
-void Game::CheckPlayState()
+void Game::CheckPlayState() // todo
 {
     const auto youRules = m_ruleManager.GetRules(ObjectType::YOU);
     if (youRules.empty())
@@ -370,8 +373,8 @@ void Game::CheckPlayState()
         return;
     }
 
-    auto players = FindObjectsByProperty(ObjectType::YOU);
-    if (players.empty())
+    auto you_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
+    if (you_ids.empty())
     {
         m_playState = PlayState::LOST;
         return;
@@ -385,7 +388,7 @@ void Game::CheckPlayState()
     // Player wins when an object has WIN at the same position as one of YOUs.
     // auto winRules = m_ruleManager.GetRules(ObjectType::WIN);
 
-    for (auto& [x, y, _] : players){
+    for (auto& [_, x, y] : you_ids){
 	auto square = m_map.At(x, y);
 	for (auto& objOnPlayer: square.GetObjects()){
 	    if (m_ruleManager.HasType(objOnPlayer, square, m_map, ObjectType::WIN)){
@@ -395,8 +398,8 @@ void Game::CheckPlayState()
     }
 }
 
-
-std::vector<PositionalObject> Game::FindObjectsByProperty(ObjectType property){
+// Instead of returning references to objects, this function returns tuples of (ObjectId, X, Y). This is due to  subsequent lost of references caused by memory reallocation of std::vector when an object is moved from a square to another square..
+std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectType property){
     std::vector<PositionalObject> res;
 
     const std::size_t width = m_map.GetWidth();
@@ -408,26 +411,37 @@ std::vector<PositionalObject> Game::FindObjectsByProperty(ObjectType property){
         for (std::size_t x = 0; x < width; ++x){
 	    Square& square = m_map.At(x, y); 
 	    ObjectContainer& objs = square.GetVariableObjects();
-	    for (auto obj = objs.begin(), e = objs.end(); obj != e; ++obj){ 
-		if (m_ruleManager.HasType(*obj, m_map.At(x, y), m_map, property)){
-		    size_t index = std::distance(objs.begin(), obj);
-		    // res.emplace_back(std::make_tuple(x, y, &(objs.at(index))));
-		    res.emplace_back(std::tie(x, y, objs.at(index)));
+	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
+		if (m_ruleManager.HasType(*itr, m_map.At(x, y), m_map, property)){
+		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
+		    // std::tuple t = std::tie(itr->GetId(), x, y);
+		    res.emplace_back(t);
 		}
 	    }
         }
     }
 
-    std::cout << "<FindObjectsByProperty: results>" << std::endl;
-    for (auto& [xx, yy, player] : res){
-		    std::cout << "x, y = " << xx << " " << yy << std::endl;
-		    std::cout << "target YOU type: (type, dir)" 
-			      << static_cast<int>(player.GetType()) << " "
-			      << static_cast<int>(player.GetDirection()) 
-			      << std::endl;
-    }
-
     return res;
+}
+
+Object& Game::GetObject(std::size_t obj_id, std::size_t x, std::size_t y){
+    Square& square = m_map.At(x, y);
+    ObjectContainer& objs = square.GetVariableObjects();
+    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
+	if (itr->GetId() == obj_id){
+	    size_t index = std::distance(objs.begin(), itr);
+	    Object& obj = objs.at(index); 
+	    return obj;
+	}
+    }
+    std::cout << "Exception: the object was not found (Id, x, y) =  "
+	      << obj_id << " "
+	      << x << " "
+	      << y << " "
+	      << std::endl;
+
+    std::exit(EXIT_FAILURE);
+
 }
 
 } // namespace baba_is_auto

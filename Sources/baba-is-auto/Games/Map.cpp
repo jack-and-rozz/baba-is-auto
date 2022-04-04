@@ -41,7 +41,7 @@ void Map::Load(std::string_view filename)
     int val = 0;
 
     /* Notes (letra418):
-       TODO: load direction files 
+       TODO: load direction?
     */
     for (std::size_t y = 0; y < m_height; ++y){
 	for (std::size_t x = 0; x < m_width; ++x){
@@ -52,8 +52,8 @@ void Map::Load(std::string_view filename)
 	// Square sq = Square(x, y, std::vector{obj2});
 
 	Object obj = Object(static_cast<ObjectType>(val));
+	obj.SetNewObjectId();
 	ObjectContainer init_vector;
-	init_vector.reserve(100);
 	init_vector.emplace_back(obj);
 	Square sq = Square(x, y, init_vector);
 

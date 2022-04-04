@@ -10,6 +10,7 @@
 
 namespace baba_is_auto
 {
+std::size_t ObjectId = 0; // a global variable
 
 /******************************************
                 Object
@@ -25,6 +26,9 @@ bool Object::operator==(const Object& rhs) const
     return (m_type == rhs.m_type) && (m_direction == rhs.m_direction);
 }
 
+std::size_t Object::GetId() const{
+    return m_id;
+}
 
 ObjectType Object::GetType() const{
     return m_type;
@@ -42,6 +46,13 @@ void Object::SetDirection(Direction dir){
     m_direction = dir;
 }
 
+std::size_t Object::SetNewObjectId(){
+    m_id = ObjectId;
+    ObjectId += 1;
+    return m_id;
+}
+
+
 
 /******************************************
                Square
@@ -55,13 +66,13 @@ Square::Square(std::size_t x, std::size_t y, ObjectContainer objects)
 {
     m_objects.reserve(100);
 }
+
 Square::Square(const Square& sq){
     m_x = sq.m_x;
     m_y = sq.m_y;
     m_objects = sq.m_objects;
-    m_objects.reserve(100);
-
-}
+    m_objects.reserve(100); // allocate memories not to allow the vector to change addresses when a new element is appended. 
+} // copy constructor
 
 
 std::size_t Square::X(){return m_x;}
@@ -99,7 +110,9 @@ void Square::RemoveObject(const Object& object){
 	std::cout << "Candidate" << std::endl;
 
 	for (auto& obj: m_objects){
-	    std::cout << "(obj_type, obj_dir) = "
+	    std::cout << "(obj_id, obj_type, obj_dir) = "
+		      << static_cast<int>(obj.GetId()) 
+		      << " "
 		      << static_cast<int>(obj.GetType()) 
 		      << " "
 		      << static_cast<int>(obj.GetDirection())
@@ -107,7 +120,9 @@ void Square::RemoveObject(const Object& object){
 	}
 	std::cout << "Target Object" << std::endl;
 
-	std::cout << "(obj_type, obj_dir) = "
+	std::cout << "(obj_id, obj_type, obj_dir) = "
+		  << static_cast<int>(object.GetId()) 
+		  << " "
 		  << static_cast<int>(object.GetType()) 
 		  << " "
 		  << static_cast<int>(object.GetDirection())

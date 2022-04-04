@@ -57,6 +57,7 @@ class Game
     //! \param dir The direction to move the player.
     void MovePlayer(Direction dir);
 
+    Object& GetObject(std::size_t obj_id, std::size_t x, std::size_t y);
  private:
     //! Parses a list of rules.
     void ParseRules();
@@ -94,12 +95,7 @@ class Game
     //! Checks the play state of the game.
     void CheckPlayState();
 
-    // std::vector<std::tuple<size_t, size_t, Object&>> FindObjectsByProperty(ObjectType property) const;
-    // std::vector<std::tuple<size_t, size_t, Object>> FindObjectsByProperty(ObjectType property) const;
-    
-    //std::vector<std::tuple<size_t, size_t, Object*>> FindObjectsByProperty(ObjectType property);
-    // std::vector<std::tuple<size_t, size_t, Object&>> FindObjectsByProperty(ObjectType property);
-    std::vector<PositionalObject> FindObjectsByProperty(ObjectType property);
+    std::vector<PositionalObject> FindObjectIdsAndPositionsByProperty(ObjectType property);
 
 
     Map m_map;

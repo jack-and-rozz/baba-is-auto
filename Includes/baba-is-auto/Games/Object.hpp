@@ -33,6 +33,7 @@ namespace baba_is_auto
 //! behavior.
 //!
 
+
 class Object
 {
  public:
@@ -41,6 +42,7 @@ class Object
 
     bool operator==(const Object& rhs) const;
 
+    std::size_t GetId() const;
     ObjectType GetType() const;
     Direction GetDirection() const;
     // std::unordered_set<ObjectType> GetProperties() const;
@@ -49,9 +51,9 @@ class Object
     // void RemoveProperty(ObjectType type);
     void SetType(ObjectType type);
     void SetDirection(Direction dir);
-
+    std::size_t SetNewObjectId();
  private:
-    // std::size_t m_id;
+    std::size_t m_id;
     ObjectType m_type;
     Direction m_direction;
     /* Notes (letra418):
@@ -65,7 +67,7 @@ class Object
 // using ObjectContainer = std::vector<Object&>;
 using ObjectContainer = std::vector<Object>;
 
-using PositionalObject = std::tuple<size_t, size_t, Object&>;
+using PositionalObject = std::tuple<size_t, size_t, size_t>;
 //using PositionalObject = std::tuple<size_t, size_t, Object>;
 
 class Square
