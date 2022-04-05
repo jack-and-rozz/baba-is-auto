@@ -78,7 +78,7 @@ class Map
     // // std::vector<Position> GetPositions(ObjectType type) const;
     Object& GetObject(ObjectId obj_id, std::size_t x, std::size_t y);
     const ObjectContainer& GetObjects(std::size_t x, std::size_t y)  const;
-    ObjectContainer& GetVariableObjects(std::size_t x, std::size_t y);
+    ObjectContainer& GetObjects(std::size_t x, std::size_t y);
 
  private:
     // std::size_t m_maxObjId = 0;

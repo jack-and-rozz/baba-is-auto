@@ -326,15 +326,14 @@ void Game::ProcessSink()
 
     // int _x;
     // int _y;
+    return ;;
     // auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::SINK);
 
     // for (auto& [obj_id, x, y] : obj_ids){
-    // 	Object& srcObject = GetObject(obj_id, x, y);
-
-	
+    // 	//Object& srcObject = m_map.GetObject(obj_id, x, y);
     // }
 
-    return;
+    // return;
 }
 
 
@@ -365,7 +364,7 @@ void Game::CheckPlayState() // todo
         return;
     }
     for (auto& [_, x, y] : obj_ids){
-	auto& objs = m_map.GetVariableObjects(x, y);
+	auto& objs = m_map.GetObjects(x, y);
 	for (auto & objOnPlayer: objs){
 	    if (m_ruleManager.HasType(objOnPlayer, ObjectType::WIN)){
 		m_playState = PlayState::WON;
@@ -385,7 +384,7 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectTy
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
-	    ObjectContainer& objs = m_map.GetVariableObjects(x, y);
+	    ObjectContainer& objs = m_map.GetObjects(x, y);
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
 		if (m_ruleManager.HasType(*itr, property)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
@@ -399,30 +398,11 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectTy
     return res;
 }
 
-// Object& Game::GetObject(ObjectId obj_id, std::size_t x, std::size_t y){
-//     Square& square = m_map.At(x, y);
-//     ObjectContainer& objs = square.GetVariableObjects();
-//     for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
-// 	if (itr->GetId() == obj_id){
-// 	    size_t index = std::distance(objs.begin(), itr);
-// 	    Object& obj = objs.at(index); 
-// 	    return obj;
-// 	}
-//     }
-//     std::cout << "Exception: the object was not found (Id, x, y) =  "
-// 	      << obj_id << " "
-// 	      << x << " "
-// 	      << y << " "
-// 	      << std::endl;
-
-//     std::exit(EXIT_FAILURE);
-// }
-
 void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
     // Recursively add pushed_flag to PUSH objects on squares.
     // This function stops when no PUSH objects exist on the next square.
 
-    ObjectContainer& objs = m_map.At(x, y).GetVariableObjects();
+    ObjectContainer& objs = m_map.GetObjects(x, y);
     bool continue_pushing = false;
     for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
 	if (m_ruleManager.HasType(*itr, ObjectType::PUSH)){
@@ -456,7 +436,7 @@ void Game::ResolveAllMoveFlags(){
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
-	    ObjectContainer& objs = m_map.GetVariableObjects(x, y);
+	    ObjectContainer& objs = m_map.GetObjects(x, y);
 
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
 		Direction dir = itr->GetMoveDirection();
@@ -479,7 +459,7 @@ void Game::ResolveAllMoveFlags(){
     }
 
     for (auto& [obj_id, x, y, _x, _y] : objsMoveSchedule){
-	Object& obj = GetObject(obj_id, x, y);
+	Object& obj = m_map.GetObject(obj_id, x, y);
 	m_map.AddObject(_x, _y, obj);
 	m_map.RemoveObject(x, y, obj);
     }

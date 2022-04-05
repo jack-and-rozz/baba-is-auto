@@ -30,33 +30,6 @@ bool Object::operator==(const Object& rhs) const
     return (m_type == rhs.m_type) && (m_id == rhs.m_id);
 }
 
-ObjectId Object::GetId() const{
-    return m_id;
-}
-
-ObjectType Object::GetType() const{
-    return m_type;
-}
-
-Direction Object::GetDirection() const{
-    return m_direction;
-}
-
-Direction Object::GetMoveDirection() const{
-    return m_move_direction;
-}
-
-void Object::SetType(ObjectType type){
-    m_type = type;
-}
-
-void Object::SetDirection(Direction dir){
-    m_direction = dir;
-}
-
-void Object::SetMoveDirection(Direction dir){
-    m_move_direction = dir;
-}
 
 ObjectId Object::SetNewObjectId(){
     m_id = GlobalObjectId;
@@ -86,9 +59,6 @@ Square::Square(const Square& sq){
     m_objects.reserve(100); // allocate memories not to allow the vector to change addresses when a new element is appended. 
 } // copy constructor
 
-
-std::size_t Square::X(){return m_x;}
-std::size_t Square::Y(){return m_y;}
 
 void Square::AddObject(const Object& object){
     std::cout << "<AddObject>" << std::endl;
@@ -168,12 +138,11 @@ void Square::RemoveAllByType(ObjectType type){
 }
 
 
-// const ObjectContainer& Square::GetObjects() const{
 const ObjectContainer& Square::GetObjects() const{
     return m_objects;
 }
 
-ObjectContainer& Square::GetVariableObjects(){
+ObjectContainer& Square::GetObjects(){
     return m_objects;
 }
 

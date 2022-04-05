@@ -44,10 +44,10 @@ class Object
 
     bool operator==(const Object& rhs) const;
 
-    ObjectId GetId() const;
-    ObjectType GetType() const;
-    Direction GetDirection() const;
-    Direction GetMoveDirection() const;
+    ObjectId GetId() const { return m_id; }
+    ObjectType GetType() const { return m_type; }
+    Direction GetDirection() const { return m_direction; }
+    Direction GetMoveDirection() const { return m_move_direction; }
     bool GetDeleteFlag() const { return m_is_deleted; }
     // std::unordered_set<ObjectType> GetProperties() const;
     // bool HasProperty(ObjectType type) const;
@@ -55,9 +55,9 @@ class Object
     // void RemoveProperty(ObjectType type);
 
     ObjectId SetNewObjectId();
-    void SetType(ObjectType type);
-    void SetDirection(Direction dir);
-    void SetMoveDirection(Direction dir);
+    void SetType(ObjectType type){ m_type = type; }
+    void SetDirection(Direction dir){ m_direction = dir; }
+    void SetMoveDirection(Direction dir) { m_move_direction = dir; }
     void SetDeleteFlag(bool flag){ m_is_deleted=flag; }
 
  private:
@@ -130,12 +130,11 @@ class Square
 
     bool isRule = false;
     const ObjectContainer& GetObjects() const;
-    ObjectContainer& GetVariableObjects();
-
+    ObjectContainer& GetObjects();
     ObjectContainer GetTextObjects() const;
 
-    size_t X();
-    size_t Y();
+    size_t X(){ return m_x; }
+    size_t Y(){ return m_y; }
 
  private:
     size_t m_x;
