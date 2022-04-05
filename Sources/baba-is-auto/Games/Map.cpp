@@ -103,6 +103,26 @@ const Square& Map::At(std::size_t x, std::size_t y) const
 }
 
 
+
+Object& Map::GetObject(ObjectId obj_id, std::size_t x, std::size_t y){
+    Square& square = At(x, y);
+    ObjectContainer& objs = square.GetVariableObjects();
+    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
+	if (itr->GetId() == obj_id){
+	    size_t index = std::distance(objs.begin(), itr);
+	    Object& obj = objs.at(index); 
+	    return obj;
+	}
+    }
+    std::cout << "Exception: the object was not found (Id, x, y) =  "
+	      << obj_id << " "
+	      << x << " "
+	      << y << " "
+	      << std::endl;
+
+    std::exit(EXIT_FAILURE);
+}
+
 const ObjectContainer& Map::GetObjects(std::size_t x, std::size_t y) const {
     const Square& square = At(x, y); 
     const ObjectContainer& objs = square.GetObjects();

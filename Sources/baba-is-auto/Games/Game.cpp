@@ -302,7 +302,7 @@ void Game::ProcessMoveByYou(Direction dir)
     */
 
     for (auto& [obj_id, x, y] : obj_ids){
- 	Object& srcObject = GetObject(obj_id, x, y);
+ 	Object& srcObject = m_map.GetObject(obj_id, x, y);
 	srcObject.SetDirection(dir); // Notes: Segmentation Fault
 	if (!CanMove(x, y, dir, srcObject)) continue;
 	srcObject.SetMoveDirection(dir);
@@ -311,7 +311,7 @@ void Game::ProcessMoveByYou(Direction dir)
     // Setting a move direction to pushed objects needs to be done after setting it to moving objects.
     // Otherwise a pushed object can set a different direction to moving objects.
     for (auto& [obj_id, x, y] : obj_ids){
- 	Object& srcObject = GetObject(obj_id, x, y);
+ 	Object& srcObject = m_map.GetObject(obj_id, x, y);
 	if (!CanMove(x, y, dir, srcObject)) continue;
  	std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
 	SetPushedDirToObjects(_x, _y, dir);
@@ -399,24 +399,24 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectTy
     return res;
 }
 
-Object& Game::GetObject(ObjectId obj_id, std::size_t x, std::size_t y){
-    Square& square = m_map.At(x, y);
-    ObjectContainer& objs = square.GetVariableObjects();
-    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
-	if (itr->GetId() == obj_id){
-	    size_t index = std::distance(objs.begin(), itr);
-	    Object& obj = objs.at(index); 
-	    return obj;
-	}
-    }
-    std::cout << "Exception: the object was not found (Id, x, y) =  "
-	      << obj_id << " "
-	      << x << " "
-	      << y << " "
-	      << std::endl;
+// Object& Game::GetObject(ObjectId obj_id, std::size_t x, std::size_t y){
+//     Square& square = m_map.At(x, y);
+//     ObjectContainer& objs = square.GetVariableObjects();
+//     for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
+// 	if (itr->GetId() == obj_id){
+// 	    size_t index = std::distance(objs.begin(), itr);
+// 	    Object& obj = objs.at(index); 
+// 	    return obj;
+// 	}
+//     }
+//     std::cout << "Exception: the object was not found (Id, x, y) =  "
+// 	      << obj_id << " "
+// 	      << x << " "
+// 	      << y << " "
+// 	      << std::endl;
 
-    std::exit(EXIT_FAILURE);
-}
+//     std::exit(EXIT_FAILURE);
+// }
 
 void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
     // Recursively add pushed_flag to PUSH objects on squares.

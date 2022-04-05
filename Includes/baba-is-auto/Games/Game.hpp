@@ -57,7 +57,7 @@ class Game
     //! \param dir The direction to move the player.
     void MovePlayer(Direction dir);
 
-    Object& GetObject(std::size_t obj_id, std::size_t x, std::size_t y);
+    // Object& GetObject(std::size_t obj_id, std::size_t x, std::size_t y);
     std::vector<PositionalObject> FindObjectIdsAndPositionsByProperty(ObjectType property);
 
  private:
