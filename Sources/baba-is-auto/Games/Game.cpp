@@ -64,18 +64,24 @@ void Game::MovePlayer(Direction dir)
       - https://w.atwiki.jp/babais/pages/42.html#id_12b90dfb
     */
 
-    // 1-1. Movement by YOU
+    // ===========================
+    // 1-1. Normal movements
     if (dir != Direction::NONE){
 	ProcessMoveByYou(dir);
     }
-
-    // 2. Parsing Rules
     ParseRules();
+    // ===========================
+    // 2. Objects changes
 
-    // 3. Update Objects
-    UpdateObjects();
+    // ===========================
+    // 3. Special Movements
 
-    // 4. Check Won/List
+    // ===========================
+    // 4. Objects vanishments
+    ProcessSink();
+    ParseRules();
+    // ===========================
+    // 5. Check Won/List
     CheckPlayState();
 }
 
@@ -234,8 +240,7 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
         return false;
     }
 
-    auto dstSquare = m_map.At(_x, _y);
-    const ObjectContainer dstObjects = dstSquare.GetObjects();
+    const ObjectContainer& dstObjects = m_map.GetObjects(_x, _y);
 
     // return false if one of objects at the target postion cannot move to the direction
     for (auto & obj: dstObjects){
@@ -263,10 +268,10 @@ void Game::ProcessMoveByYou(Direction dir)
 {
     std::cout << "<ProcessMoveByYou: startt>" << std::endl;
 
-    auto you_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
-
     int _x;
     int _y;
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
+
 
     /*
       MEMO: 
@@ -296,7 +301,7 @@ void Game::ProcessMoveByYou(Direction dir)
       Notes (letra418):
     */
 
-    for (auto& [obj_id, x, y] : you_ids){
+    for (auto& [obj_id, x, y] : obj_ids){
  	Object& srcObject = GetObject(obj_id, x, y);
 	srcObject.SetDirection(dir); // Notes: Segmentation Fault
 	if (!CanMove(x, y, dir, srcObject)) continue;
@@ -305,7 +310,7 @@ void Game::ProcessMoveByYou(Direction dir)
 
     // Setting a move direction to pushed objects needs to be done after setting it to moving objects.
     // Otherwise a pushed object can set a different direction to moving objects.
-    for (auto& [obj_id, x, y] : you_ids){
+    for (auto& [obj_id, x, y] : obj_ids){
  	Object& srcObject = GetObject(obj_id, x, y);
 	if (!CanMove(x, y, dir, srcObject)) continue;
  	std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
@@ -315,43 +320,37 @@ void Game::ProcessMoveByYou(Direction dir)
     return;
 }
 
+void Game::ProcessSink()
+{
+    std::cout << "<ProcessSink: start>" << std::endl;
 
-// void Game::ProcessPush(std::size_t x, std::size_t y, Direction dir,
-// 		       Object& srcObject){
+    // int _x;
+    // int _y;
+    // auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::SINK);
 
-//     std::cout << "<ProcessPush>: (x, y, type, dir) = " 
-// 	      << x << " " << y << " " 
-// 	      << static_cast<int>(srcObject.GetType()) << " "
-// 	      << static_cast<int>(dir)
-// 	      << std::endl;
-    
-//     int _x;
-//     int _y;
-//     std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+    // for (auto& [obj_id, x, y] : obj_ids){
+    // 	Object& srcObject = GetObject(obj_id, x, y);
 
-//     auto dstSquare = m_map.At(_x, _y);
-//     auto dstObjects = dstSquare.GetObjects();
+	
+    // }
 
-//     for (auto & obj: dstObjects){
-// 	if (m_ruleManager.HasType(obj, ObjectType::PUSH)){
-// 	    ProcessPush(_x, _y, dir, obj);
-// 	}
-//     }
-//     m_map.AddObject(_x, _y, srcObject);
-//     m_map.RemoveObject(x, y, srcObject);
-//     return;
-// }
-
-
-void Game::UpdateObjects(){
     return;
 }
 
 
 
 
+
+
+
+
 void Game::CheckPlayState() // todo
 {
+    /*
+      Notes (letra418):
+      Strictly, existing no YOU rules or YOU objects does not mean lose.
+    */
+
     const auto youRules = m_ruleManager.GetRules(ObjectType::YOU);
     if (youRules.empty())
     {
@@ -359,24 +358,15 @@ void Game::CheckPlayState() // todo
         return;
     }
 
-    auto you_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
-    if (you_ids.empty())
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
+    if (obj_ids.empty())
     {
         m_playState = PlayState::LOST;
         return;
     }
-
-    /*
-      Notes (letra418): 
-      this judge is imcomplete and will be fixed after implementing conditional operators such as ON and FENCING.
-     */
-
-    // Player wins when an object has WIN at the same position as one of YOUs.
-    // auto winRules = m_ruleManager.GetRules(ObjectType::WIN);
-
-    for (auto& [_, x, y] : you_ids){
-	auto square = m_map.At(x, y);
-	for (auto& objOnPlayer: square.GetObjects()){
+    for (auto& [_, x, y] : obj_ids){
+	auto& objs = m_map.GetVariableObjects(x, y);
+	for (auto & objOnPlayer: objs){
 	    if (m_ruleManager.HasType(objOnPlayer, ObjectType::WIN)){
 		m_playState = PlayState::WON;
 	    }
@@ -395,8 +385,7 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectTy
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
-	    Square& square = m_map.At(x, y); 
-	    ObjectContainer& objs = square.GetVariableObjects();
+	    ObjectContainer& objs = m_map.GetVariableObjects(x, y);
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
 		if (m_ruleManager.HasType(*itr, property)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
@@ -467,8 +456,8 @@ void Game::ResolveAllMoveFlags(){
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
-	    Square& square = m_map.At(x, y); 
-	    ObjectContainer& objs = square.GetVariableObjects();
+	    ObjectContainer& objs = m_map.GetVariableObjects(x, y);
+
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
 		Direction dir = itr->GetMoveDirection();
 		if (dir != Direction::NONE){

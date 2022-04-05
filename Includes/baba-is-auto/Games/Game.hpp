@@ -87,15 +87,12 @@ class Game
     // 			  Object obj);
 
     void ProcessMoveByYou(Direction dir);
-
+    void ProcessSink();
 
     // void ProcessPush(std::size_t x, std::size_t y, Direction dir, Object& obj);
 
-    void UpdateObjects();
-
     //! Checks the play state of the game.
     void CheckPlayState();
-
     void SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir);
     void ResolveAllMoveFlags();
 

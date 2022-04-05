@@ -102,4 +102,20 @@ const Square& Map::At(std::size_t x, std::size_t y) const
     return m_squares.at(y * m_width + x);
 }
 
+
+const ObjectContainer& Map::GetObjects(std::size_t x, std::size_t y) const {
+    const Square& square = At(x, y); 
+    const ObjectContainer& objs = square.GetObjects();
+    return objs;
+}
+
+ObjectContainer& Map::GetVariableObjects(std::size_t x, std::size_t y){
+    Square& square = At(x, y); 
+    ObjectContainer& objs = square.GetVariableObjects();
+    return objs;
+}
+
+
+
+
 }  // namespace baba_is_auto

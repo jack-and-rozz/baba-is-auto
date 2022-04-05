@@ -76,8 +76,8 @@ class Map
     // //! \param type An object type to get a list of positions.
     // //! \return A list of icon positions.
     // // std::vector<Position> GetPositions(ObjectType type) const;
-
-    // Square At2(std::size_t x, std::size_t y) const;
+    const ObjectContainer& GetObjects(std::size_t x, std::size_t y)  const;
+    ObjectContainer& GetVariableObjects(std::size_t x, std::size_t y);
 
  private:
     // std::size_t m_maxObjId = 0;
