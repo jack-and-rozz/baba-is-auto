@@ -330,11 +330,13 @@ void Game::ProcessSink()
     // All objects on SINK are removed.
     for (auto& [_, x, y] : obj_ids){
 	auto& objs = m_map.GetObjects(x, y);
-	for (auto& obj : objs){
-	    obj.SetRemoveFlag(true);
+	if (objs.size() > 1){
+	    for (auto& obj : objs){
+		obj.SetRemoveFlag(true);
+	    }
 	}
     }
-
+    ResolveAllRemoveFlags();
     // return;
 }
 
@@ -424,6 +426,31 @@ void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
 	SetPushedDirToObjects(_x, _y, dir);
     }
     return;
+}
+
+
+void Game::ResolveAllRemoveFlags(){
+    const std::size_t width = m_map.GetWidth();
+    const std::size_t height = m_map.GetHeight();
+
+    std::vector<std::tuple<ObjectId, size_t, size_t>> objsRemoveSchedule;
+    std::tuple<ObjectId, size_t, size_t> s;
+
+    for (std::size_t y = 0; y < height; ++y){
+        for (std::size_t x = 0; x < width; ++x){
+	    ObjectContainer& objs = m_map.GetObjects(x, y);
+	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
+		if (itr->GetRemoveFlag()){
+		    s = std::make_tuple(itr->GetId(), x, y);
+		    objsRemoveSchedule.emplace_back(s);
+		}
+	    }
+	}
+    }
+    for (auto& [obj_id, x, y] : objsRemoveSchedule){
+	Object& obj = m_map.GetObject(obj_id, x, y);
+	m_map.RemoveObject(x, y, obj);
+    }
 }
 
 

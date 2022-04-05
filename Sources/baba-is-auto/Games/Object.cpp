@@ -20,8 +20,8 @@ Object::Object(ObjectType type, Direction dir){
     m_type = type;
     m_direction = dir;
     m_move_direction = Direction::NONE;
-    m_id = GlobalObjectId;
-    GlobalObjectId += 1;
+    m_is_removed = false;
+    SetNewObjectId();
 }
 
 bool Object::operator==(const Object& rhs) const

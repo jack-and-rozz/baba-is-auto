@@ -95,6 +95,7 @@ class Game
     void CheckPlayState();
     void SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir);
     void ResolveAllMoveFlags();
+    void ResolveAllRemoveFlags();
 
     Map m_map;
     RuleManager m_ruleManager;
