@@ -161,7 +161,7 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
 }
 
 std::tuple<int, int> GetPositionAfterMove(std::size_t x, std::size_t y, 
-					   Direction dir)
+					  Direction dir)
 {
     int _x = static_cast<int>(x);
     int _y = static_cast<int>(y);
@@ -296,25 +296,15 @@ void Game::ProcessMoveByYou(Direction dir)
       Notes (letra418):
     */
 
-
-
     for (auto& [obj_id, x, y] : you_ids){
  	Object& srcObject = GetObject(obj_id, x, y);
 	srcObject.SetDirection(dir); // Notes: Segmentation Fault
-
-	// std::cout << "ProcessMoveByYou: (x, y, type, dir) = " 
-	// 	  << x << " " << y << " " 
-	// 	  << static_cast<int>(srcObject.GetType()) << " "
-	// 	  << static_cast<int>(srcObject.GetDirection())
-	// 	  << std::endl;
-
 	if (!CanMove(x, y, dir, srcObject)) continue;
 	srcObject.SetMoveDirection(dir);
     }
 
     // Setting a move direction to pushed objects needs to be done after setting it to moving objects.
     // Otherwise a pushed object can set a different direction to moving objects.
-
     for (auto& [obj_id, x, y] : you_ids){
  	Object& srcObject = GetObject(obj_id, x, y);
 	if (!CanMove(x, y, dir, srcObject)) continue;
@@ -322,26 +312,6 @@ void Game::ProcessMoveByYou(Direction dir)
 	SetPushedDirToObjects(_x, _y, dir);
     }
     ResolveAllMoveFlags();
-
-
-    // // Call AddObject first to prevent memory freeing
-    // m_map.AddObject(_x, _y, srcObject);
-    // m_map.RemoveObject(x, y, srcObject);
-
-
-    // you_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
-    // for (auto& [obj_id, _x, _y] : you_ids){
-    // 	//std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
-    // 	auto dstObjects = m_map.At(_x, _y).GetObjects();
-
-    // 	for (auto & obj: dstObjects){
-    // 	    if (m_ruleManager.HasType(obj, ObjectType::PUSH)){
-    // 		//ProcessPush(_x, _y, dir, obj);
-    // 	    }
-    // 	}
-    // }
-
-
     return;
 }
 
@@ -414,7 +384,7 @@ void Game::CheckPlayState() // todo
     }
 }
 
-// Instead of returning references to objects, this function returns tuples of (ObjectId, X, Y). This is due to  subsequent lost of references caused by memory reallocation of std::vector when an object is moved from a square to another square..
+// Instead of returning references to objects, this function returns tuples of (ObjectId, X, Y). This is due to subsequent lost of references caused by memory reallocation of std::vector when an object is moved from a square to another square..
 std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectType property){
     std::vector<PositionalObject> res;
 
@@ -440,7 +410,7 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectTy
     return res;
 }
 
-Object& Game::GetObject(std::size_t obj_id, std::size_t x, std::size_t y){
+Object& Game::GetObject(ObjectId obj_id, std::size_t x, std::size_t y){
     Square& square = m_map.At(x, y);
     ObjectContainer& objs = square.GetVariableObjects();
     for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
@@ -492,7 +462,9 @@ void Game::ResolveAllMoveFlags(){
     const std::size_t width = m_map.GetWidth();
     const std::size_t height = m_map.GetHeight();
 
-    std::vector<std::tuple<size_t, size_t, size_t, size_t, size_t>> objsMoveSchedule;
+    std::vector<std::tuple<ObjectId, size_t, size_t, size_t, size_t>> objsMoveSchedule;
+    std::tuple<ObjectId, size_t, size_t, size_t, size_t> s;
+
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
 	    Square& square = m_map.At(x, y); 
@@ -510,7 +482,6 @@ void Game::ResolveAllMoveFlags(){
 		    std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
 		    itr->SetMoveDirection(Direction::NONE);
 
-		    std::tuple<size_t, size_t, size_t, size_t, size_t> s;
 		    s = std::make_tuple(itr->GetId(), x, y, _x, _y);
 		    objsMoveSchedule.emplace_back(s);
 		}

@@ -52,9 +52,8 @@ void Map::Load(std::string_view filename)
 	// Square sq = Square(x, y, std::vector{obj2});
 
 	Object obj = Object(static_cast<ObjectType>(val));
-	obj.SetNewObjectId();
-	ObjectContainer init_vector;
-	init_vector.emplace_back(obj);
+
+	ObjectContainer init_vector{obj};
 	Square sq = Square(x, y, init_vector);
 
 	m_initSquares.emplace_back(sq);

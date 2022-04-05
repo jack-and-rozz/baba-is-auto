@@ -10,7 +10,7 @@
 
 namespace baba_is_auto
 {
-std::size_t ObjectId = 0; // a global variable
+ObjectId GlobalObjectId = 0; // a global variable to show the latest ID.
 
 /******************************************
                 Object
@@ -20,14 +20,17 @@ Object::Object(ObjectType type, Direction dir){
     m_type = type;
     m_direction = dir;
     m_move_direction = Direction::NONE;
+    m_id = GlobalObjectId;
+    GlobalObjectId += 1;
 }
 
 bool Object::operator==(const Object& rhs) const
 {
-    return (m_type == rhs.m_type) && (m_direction == rhs.m_direction);
+    // return (m_type == rhs.m_type) && (m_direction == rhs.m_direction);
+    return (m_type == rhs.m_type) && (m_id == rhs.m_id);
 }
 
-std::size_t Object::GetId() const{
+ObjectId Object::GetId() const{
     return m_id;
 }
 
@@ -55,9 +58,9 @@ void Object::SetMoveDirection(Direction dir){
     m_move_direction = dir;
 }
 
-std::size_t Object::SetNewObjectId(){
-    m_id = ObjectId;
-    ObjectId += 1;
+ObjectId Object::SetNewObjectId(){
+    m_id = GlobalObjectId;
+    GlobalObjectId += 1;
     return m_id;
 }
 

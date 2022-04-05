@@ -33,6 +33,8 @@ namespace baba_is_auto
 //! behavior.
 //!
 
+using ObjectId = std::size_t;
+//using Axis = std::size_t;
 
 class Object
 {
@@ -42,7 +44,7 @@ class Object
 
     bool operator==(const Object& rhs) const;
 
-    std::size_t GetId() const;
+    ObjectId GetId() const;
     ObjectType GetType() const;
     Direction GetDirection() const;
     Direction GetMoveDirection() const;
@@ -53,9 +55,9 @@ class Object
     void SetType(ObjectType type);
     void SetDirection(Direction dir);
     void SetMoveDirection(Direction dir);
-    std::size_t SetNewObjectId();
+    ObjectId SetNewObjectId();
  private:
-    std::size_t m_id;
+    ObjectId m_id;
     ObjectType m_type;
     Direction m_direction;
     Direction m_move_direction;
@@ -67,12 +69,9 @@ class Object
     // std::unordered_set<ObjectType> m_properties;  
 
 };
-
-// using ObjectContainer = std::vector<Object&>;
 using ObjectContainer = std::vector<Object>;
+using PositionalObject = std::tuple<ObjectId, size_t, size_t>;
 
-using PositionalObject = std::tuple<size_t, size_t, size_t>;
-//using PositionalObject = std::tuple<size_t, size_t, Object>;
 
 class Square
 {
@@ -86,7 +85,7 @@ class Square
     //! Constructs an object.
     //! \param types A list of object types.
     // explicit Square(std::size_t x, std::size_t y, std::vector<Object> objects);
-    explicit Square(std::size_t x, std::size_t y, ObjectContainer objects);
+    explicit Square(size_t x, size_t y, ObjectContainer objects);
 
     //! Operator overloading for ==.
     //! \param rhs A right side of Object object.
@@ -128,12 +127,12 @@ class Square
 
     ObjectContainer GetTextObjects() const;
 
-    std::size_t X();
-    std::size_t Y();
+    size_t X();
+    size_t Y();
 
  private:
-    std::size_t m_x;
-    std::size_t m_y;
+    size_t m_x;
+    size_t m_y;
     ObjectContainer m_objects;
 
 };
