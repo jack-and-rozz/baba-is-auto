@@ -324,14 +324,16 @@ void Game::ProcessSink()
 {
     std::cout << "<ProcessSink: start>" << std::endl;
 
-    // int _x;
-    // int _y;
-    return ;;
-    // auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::SINK);
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::SINK);
 
-    // for (auto& [obj_id, x, y] : obj_ids){
-    // 	//Object& srcObject = m_map.GetObject(obj_id, x, y);
-    // }
+
+    // All objects on SINK are removed.
+    for (auto& [_, x, y] : obj_ids){
+	auto& objs = m_map.GetObjects(x, y);
+	for (auto& obj : objs){
+	    obj.SetRemoveFlag(true);
+	}
+    }
 
     // return;
 }

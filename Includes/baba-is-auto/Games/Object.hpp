@@ -48,7 +48,7 @@ class Object
     ObjectType GetType() const { return m_type; }
     Direction GetDirection() const { return m_direction; }
     Direction GetMoveDirection() const { return m_move_direction; }
-    bool GetDeleteFlag() const { return m_is_deleted; }
+    bool GetRemoveFlag() const { return m_is_removed; }
     // std::unordered_set<ObjectType> GetProperties() const;
     // bool HasProperty(ObjectType type) const;
     // void AddProperty(ObjectType type);
@@ -58,7 +58,7 @@ class Object
     void SetType(ObjectType type){ m_type = type; }
     void SetDirection(Direction dir){ m_direction = dir; }
     void SetMoveDirection(Direction dir) { m_move_direction = dir; }
-    void SetDeleteFlag(bool flag){ m_is_deleted=flag; }
+    void SetRemoveFlag(bool flag){ m_is_removed=flag; }
 
  private:
     ObjectId m_id;
@@ -67,7 +67,7 @@ class Object
 
     // Temporal Flags to resolve rules simultaneously.
     Direction m_move_direction;
-    bool m_is_deleted;
+    bool m_is_removed;
 
     /* Notes (letra418):
        m_properties are Currently not used.

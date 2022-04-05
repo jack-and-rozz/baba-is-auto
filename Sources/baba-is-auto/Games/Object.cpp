@@ -52,12 +52,13 @@ Square::Square(std::size_t x, std::size_t y, ObjectContainer objects)
     m_objects.reserve(100);
 }
 
+// copy constructor
 Square::Square(const Square& sq){
     m_x = sq.m_x;
     m_y = sq.m_y;
     m_objects = sq.m_objects;
-    m_objects.reserve(100); // allocate memories not to allow the vector to change addresses when a new element is appended. 
-} // copy constructor
+    m_objects.reserve(100); // allocate memories not to allow the vector to change addresses when a new element is appended.
+}
 
 
 void Square::AddObject(const Object& object){
