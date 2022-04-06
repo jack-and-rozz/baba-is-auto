@@ -14,6 +14,9 @@ Game::Game(std::string_view filename)
     m_map.Load(filename);
     ParseRules();
     m_playState = PlayState::PLAYING;
+
+    std::random_device rnd;
+    mt.seed(rnd());
 }
 
 void Game::Reset()
@@ -45,6 +48,11 @@ PlayState Game::GetPlayState() const
     return m_playState;
 }
 
+int Game::RandInt(int min, int max)
+{
+    std::uniform_int_distribution<> rand(min, max);
+    return rand(mt);
+}
 
 void Game::MovePlayer(Direction dir)
 {
@@ -68,8 +76,8 @@ void Game::MovePlayer(Direction dir)
 
     // ===========================
     // 1-1. Normal movements
-    if (dir != Direction::NONE){ ProcessYOU(dir); }
-    ProcessMove();
+    ProcessYOU(dir);
+    ProcessMOVE();
     ParseRules();
     // ===========================
     // 2. Objects changes
@@ -277,6 +285,7 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 
 void Game::ProcessYOU(Direction dir)
 {
+    if (dir != Direction::NONE) { return; }
     int _x;
     int _y;
     auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
@@ -328,7 +337,7 @@ void Game::ProcessYOU(Direction dir)
     ResolveAllMoveFlags();
 }
 
-void Game::ProcessMove()
+void Game::ProcessMOVE()
 {
     int _x;
     int _y;
@@ -341,7 +350,11 @@ void Game::ProcessMove()
 	dir = obj.GetDirection();
 	if (dir == Direction::NONE){
 	    // In the original, objects with no initial direction have a random direction when it is needed.
-	    obj.SetDirection(Direction::LEFT);
+	    Direction dirs[] = {Direction::LEFT,
+				Direction::RIGHT,
+				Direction::UP,
+				Direction::DOWN};
+	    obj.SetDirection(dirs[RandInt(0, 3)]);
 	    dir = obj.GetDirection();
 	}
 	revdir = GetReverseDirection(dir);

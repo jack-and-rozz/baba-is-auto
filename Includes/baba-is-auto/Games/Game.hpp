@@ -16,6 +16,8 @@
 #include <iostream>
 #include <typeinfo>
 #include <tuple>
+#include <random>
+
 namespace baba_is_auto
 {
 //!
@@ -59,6 +61,8 @@ class Game
 
     // Object& GetObject(std::size_t obj_id, std::size_t x, std::size_t y);
     std::vector<PositionalObject> FindObjectIdsAndPositionsByProperty(ObjectType property);
+    
+    int RandInt(int min, int max);
 
  private:
     //! Parses a list of rules.
@@ -87,7 +91,7 @@ class Game
     // 			  Object obj);
 
     void ProcessYOU(Direction dir);
-    void ProcessMove();
+    void ProcessMOVE();
     void ProcessIS();
 
     bool ProcessSINK();
@@ -102,6 +106,7 @@ class Game
 
     Map m_map;
     RuleManager m_ruleManager;
+    std::mt19937 mt;
 
     PlayState m_playState = PlayState::INVALID;
     // std::vector<ObjectType> m_playerIcons;
