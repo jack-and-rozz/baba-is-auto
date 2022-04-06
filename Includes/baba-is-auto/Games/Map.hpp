@@ -42,11 +42,11 @@ class Map
 
     //! Gets the width of the map.
     //! \return The width of the map.
-    std::size_t GetWidth() const;
+    inline std::size_t GetWidth() const { return m_width; }
 
     //! Gets the height of the map.
     //! \return The height of the map.
-    std::size_t GetHeight() const;
+    inline std::size_t GetHeight() const { return m_height; };
 
     //! Adds an object to the map.
     //! \param x The x position.

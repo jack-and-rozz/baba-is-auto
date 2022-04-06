@@ -47,12 +47,8 @@ void Map::Load(std::string_view filename)
 	for (std::size_t x = 0; x < m_width; ++x){
 
         mapFile >> val;
-	// Object* obj = new Object(static_cast<ObjectType>(val));
-	// Object& obj2 = *obj;
-	// Square sq = Square(x, y, std::vector{obj2});
 
 	Object obj = Object(static_cast<ObjectType>(val));
-
 	ObjectContainer init_vector{obj};
 	Square sq = Square(x, y, init_vector);
 
@@ -70,17 +66,6 @@ void Map::Reset()
 {
     m_squares = m_initSquares;
 }
-
-std::size_t Map::GetWidth() const
-{
-    return m_width;
-}
-
-std::size_t Map::GetHeight() const
-{
-    return m_height;
-}
-
 
 void Map::AddObject(std::size_t x, std::size_t y, const Object& obj)
 {
@@ -101,8 +86,6 @@ const Square& Map::At(std::size_t x, std::size_t y) const
 {
     return m_squares.at(y * m_width + x);
 }
-
-
 
 Object& Map::GetObject(ObjectId obj_id, std::size_t x, std::size_t y){
     Square& square = At(x, y);

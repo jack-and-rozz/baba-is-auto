@@ -7,6 +7,7 @@
 #include <baba-is-auto/Games/Object.hpp>
 
 #include <algorithm>
+#include <random>
 
 namespace baba_is_auto
 {
@@ -15,7 +16,7 @@ ObjectId GlobalObjectId = 0; // a global variable to show the latest ID.
 /******************************************
                 Object
 *******************************************/
-Object::Object(ObjectType type, Direction dir){	
+Object::Object(ObjectType type, Direction dir){
     // m_id = id;
     m_type = type;
     m_direction = dir;

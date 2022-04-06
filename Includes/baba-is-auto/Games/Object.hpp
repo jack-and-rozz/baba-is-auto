@@ -44,21 +44,23 @@ class Object
 
     bool operator==(const Object& rhs) const;
 
-    ObjectId GetId() const { return m_id; }
-    ObjectType GetType() const { return m_type; }
-    Direction GetDirection() const { return m_direction; }
-    Direction GetMoveDirection() const { return m_move_direction; }
-    bool GetRemoveFlag() const { return m_is_removed; }
+    //ObjectId GetId() const { return m_id; }
+    inline ObjectId GetId() const { return m_id; }
+    inline ObjectType GetType() const { return m_type; }
+    inline Direction GetDirection() const { return m_direction; }
+    inline Direction GetMoveFlag() const { return m_move_direction; }
+    inline bool GetRemoveFlag() const { return m_is_removed; }
+
     // std::unordered_set<ObjectType> GetProperties() const;
     // bool HasProperty(ObjectType type) const;
     // void AddProperty(ObjectType type);
     // void RemoveProperty(ObjectType type);
 
     ObjectId SetNewObjectId();
-    void SetType(ObjectType type){ m_type = type; }
-    void SetDirection(Direction dir){ m_direction = dir; }
-    void SetMoveDirection(Direction dir) { m_move_direction = dir; }
-    void SetRemoveFlag(bool flag){ m_is_removed=flag; }
+    inline void SetType(ObjectType type){ m_type = type; }
+    inline void SetDirection(Direction dir){ m_direction = dir; }
+    inline void SetMoveFlag(Direction dir) { m_move_direction = dir; }
+    inline void SetRemoveFlag(bool flag){ m_is_removed=flag; }
 
  private:
     ObjectId m_id;
@@ -73,13 +75,13 @@ class Object
        m_properties are Currently not used.
        Which is better properties are assigned to each object after parsing rules or to ask RuleManager whether an object has a property?
      */
-    // std::unordered_set<ObjectType> m_properties;  
-
+    // std::unordered_set<ObjectType> m_properties;
 };
+
 using ObjectContainer = std::vector<Object>;
 using PositionalObject = std::tuple<ObjectId, size_t, size_t>;
 
-
+// Squareの採用どうするか検討中。。。少なくともGame内で直接操作しないようにしよう
 class Square
 {
  public:
@@ -114,12 +116,12 @@ class Square
     //! \param type An object type to check.
     //! \return The flag indicates that the object has specific type.
     /* 
-       Note (letra418):  
-       HasType does not support types induced by rules. 
-       e.g., Even if there is a rule "WATER IS SINK" and ICON_WATER is at (x, y), 
+       Note (letra418):
+       HasType does not support types induced by rules.
+       e.g., Even if there is a rule "WATER IS SINK" and ICON_WATER is at (x, y),
        Map.At(x, y).HasType(ObjectType::SINK) returns false.
        In contrast, 
-       RuleManager.HasType(object, ObjectType::SINK) 
+       RuleManager.HasType(object, ObjectType::SINK)
        can return true.
      */ 
     bool HasType(ObjectType type) const;
@@ -133,8 +135,8 @@ class Square
     ObjectContainer& GetObjects();
     ObjectContainer GetTextObjects() const;
 
-    size_t X(){ return m_x; }
-    size_t Y(){ return m_y; }
+    inline size_t X() const { return m_x; }
+    inline size_t Y() const { return m_y; }
 
  private:
     size_t m_x;

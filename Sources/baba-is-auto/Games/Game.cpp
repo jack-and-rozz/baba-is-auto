@@ -49,6 +49,8 @@ PlayState Game::GetPlayState() const
 void Game::MovePlayer(Direction dir)
 {
 
+    // This function is directly called in simulation.
+
     /*
       Notes (letra418):
       Strictly speaking, the current order of each process is incomplete.
@@ -66,20 +68,26 @@ void Game::MovePlayer(Direction dir)
 
     // ===========================
     // 1-1. Normal movements
-    if (dir != Direction::NONE){
-	ProcessMoveByYou(dir);
-    }
+    if (dir != Direction::NONE){ ProcessYOU(dir); }
+    ProcessMove();
     ParseRules();
     // ===========================
     // 2. Objects changes
+    ProcessIS();
+    ParseRules();
 
     // ===========================
     // 3. Special Movements
+    // ProcessTele();
+    // ParseRules();
 
     // ===========================
     // 4. Objects vanishments
-    ProcessSink();
+    ProcessSINK();
+    ProcessHOTAndMELT();
+    ProcessDEFEAT();
     ParseRules();
+
     // ===========================
     // 5. Check Won/List
     CheckPlayState();
@@ -166,8 +174,15 @@ void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
     }
 }
 
-std::tuple<int, int> GetPositionAfterMove(std::size_t x, std::size_t y, 
-					  Direction dir)
+Direction GetReverseDirection(Direction dir){
+    if (dir == Direction::LEFT){ return Direction::RIGHT; }
+    if (dir == Direction::RIGHT){ return Direction::LEFT; }
+    if (dir == Direction::UP){ return Direction::DOWN; }
+    if (dir == Direction::DOWN){ return Direction::UP; }
+    return Direction::NONE;
+}
+
+std::tuple<int, int> GetPositionAfterMove(std::size_t x, std::size_t y, Direction dir)
 {
     int _x = static_cast<int>(x);
     int _y = static_cast<int>(y);
@@ -231,8 +246,8 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
     const auto width = static_cast<int>(m_map.GetWidth());
     const auto height = static_cast<int>(m_map.GetHeight());
 
-    int _x; // after move
-    int _y; // after move
+    int _x;
+    int _y;
     std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
 
     // Check boundary
@@ -248,10 +263,6 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 	  Notes (letra418):
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
-	// if (m_ruleManager.HasType(obj, ObjectType::YOU) && 
-	//     CanMove(_x, _y, dir, obj)){
-	//     return true;
-	// }
 
 	if (m_ruleManager.HasType(obj, ObjectType::PUSH) && 
 	    !CanMove(_x, _y, dir, obj)){
@@ -264,10 +275,8 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
     return true;
 }
 
-void Game::ProcessMoveByYou(Direction dir)
+void Game::ProcessYOU(Direction dir)
 {
-    std::cout << "<ProcessMoveByYou: startt>" << std::endl;
-
     int _x;
     int _y;
     auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
@@ -305,7 +314,7 @@ void Game::ProcessMoveByYou(Direction dir)
  	Object& srcObject = m_map.GetObject(obj_id, x, y);
 	srcObject.SetDirection(dir); // Notes: Segmentation Fault
 	if (!CanMove(x, y, dir, srcObject)) continue;
-	srcObject.SetMoveDirection(dir);
+	srcObject.SetMoveFlag(dir);
     }
 
     // Setting a move direction to pushed objects needs to be done after setting it to moving objects.
@@ -317,27 +326,112 @@ void Game::ProcessMoveByYou(Direction dir)
 	SetPushedDirToObjects(_x, _y, dir);
     }
     ResolveAllMoveFlags();
-    return;
 }
 
-void Game::ProcessSink()
+void Game::ProcessMove()
 {
-    std::cout << "<ProcessSink: start>" << std::endl;
+    int _x;
+    int _y;
+    Direction dir;
+    Direction revdir;
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::MOVE);
 
+    for (auto& [obj_id, x, y] : obj_ids){
+    	Object& obj = m_map.GetObject(obj_id, x, y);
+	dir = obj.GetDirection();
+	if (dir == Direction::NONE){
+	    // In the original, objects with no initial direction have a random direction when it is needed.
+	    obj.SetDirection(Direction::LEFT);
+	    dir = obj.GetDirection();
+	}
+	revdir = GetReverseDirection(dir);
+
+    	if (CanMove(x, y, dir, obj)){
+	    std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+	    obj.SetMoveFlag(dir);
+	} else if (CanMove(x, y, revdir, obj)){
+	    obj.SetDirection(revdir);
+	    obj.SetMoveFlag(revdir);
+	} else {
+	    obj.SetDirection(revdir);
+	}
+    }
+
+    for (auto& [obj_id, x, y] : obj_ids){
+    	Object& obj = m_map.GetObject(obj_id, x, y);
+	dir = obj.GetDirection();
+	revdir = GetReverseDirection(dir);
+
+    	if (CanMove(x, y, dir, obj)){
+	    std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+	    SetPushedDirToObjects(_x, _y, dir);
+	} else {
+	    std::tie(_x, _y) = GetPositionAfterMove(x, y, revdir);
+	    SetPushedDirToObjects(_x, _y, revdir);
+	}
+    }
+
+    ResolveAllMoveFlags();
+}
+
+void Game::ProcessIS()
+{
+
+}
+
+bool Game::ProcessSINK()
+{
+    bool happened = false;
     auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::SINK);
 
-
-    // All objects on SINK are removed.
+    // All objects on SINK object and itself are removed.
     for (auto& [_, x, y] : obj_ids){
 	auto& objs = m_map.GetObjects(x, y);
 	if (objs.size() > 1){
 	    for (auto& obj : objs){
 		obj.SetRemoveFlag(true);
+		happened = true;
 	    }
 	}
     }
     ResolveAllRemoveFlags();
-    // return;
+    return happened;
+}
+
+bool Game::ProcessHOTAndMELT()
+{
+    bool happened = false;
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::MELT);
+    for (auto& [melt_id, x, y] : obj_ids){
+	auto& meltObj = m_map.GetObject(melt_id, x, y);
+
+	for (auto& obj : m_map.GetObjects(x, y)){
+	    if (m_ruleManager.HasType(obj, ObjectType::HOT)){
+		meltObj.SetRemoveFlag(true);
+		happened = true;
+	    }
+	}
+    }
+    ResolveAllRemoveFlags();
+    return happened;
+}
+
+bool Game::ProcessDEFEAT()
+{
+    bool happened = false;
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
+    for (auto& [you_id, x, y] : obj_ids){
+	auto& youObj = m_map.GetObject(you_id, x, y);
+
+	for (auto& obj : m_map.GetObjects(x, y)){
+	    if (m_ruleManager.HasType(obj, ObjectType::DEFEAT)){
+		youObj.SetRemoveFlag(true);
+		happened = true;
+	    }
+	}
+    }
+    ResolveAllRemoveFlags();
+    return happened;
 }
 
 
@@ -384,8 +478,6 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectTy
     const std::size_t width = m_map.GetWidth();
     const std::size_t height = m_map.GetHeight();
 
-    std::cout << "<FindObjectsByProperty>" <<  std::endl;
-
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
 	    ObjectContainer& objs = m_map.GetObjects(x, y);
@@ -408,11 +500,12 @@ void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
 
     ObjectContainer& objs = m_map.GetObjects(x, y);
     bool continue_pushing = false;
+
     for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
 	if (m_ruleManager.HasType(*itr, ObjectType::PUSH)){
 	    // Skipped if an object was already pushed from another direction (e.g., MOVE objects can push an object from two directions).
-	    if (itr->GetMoveDirection() == Direction::NONE){
-		itr->SetMoveDirection(dir);
+	    if (itr->GetMoveFlag() == Direction::NONE){
+		itr->SetMoveFlag(dir);
 		itr->SetDirection(dir);
 		continue_pushing = true;
 	    }
@@ -468,17 +561,17 @@ void Game::ResolveAllMoveFlags(){
 	    ObjectContainer& objs = m_map.GetObjects(x, y);
 
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
-		Direction dir = itr->GetMoveDirection();
+		Direction dir = itr->GetMoveFlag();
 		if (dir != Direction::NONE){
-		    std::cout << "ResolveAllMoveFlags" << std::endl;
-		    std::cout << static_cast<int>(itr->GetType()) << " "
-			      << static_cast<int>(itr->GetId()) << " "
-			      << x << " "
-			      << y << " "
-			      << std::endl;
+		    // std::cout << "ResolveAllMoveFlags" << std::endl;
+		    // std::cout << static_cast<int>(itr->GetType()) << " "
+		    // 	      << static_cast<int>(itr->GetId()) << " "
+		    // 	      << x << " "
+		    // 	      << y << " "
+		    // 	      << std::endl;
 
 		    std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
-		    itr->SetMoveDirection(Direction::NONE);
+		    itr->SetMoveFlag(Direction::NONE);
 
 		    s = std::make_tuple(itr->GetId(), x, y, _x, _y);
 		    objsMoveSchedule.emplace_back(s);
