@@ -54,6 +54,18 @@ int Game::RandInt(int min, int max)
     return rand(mt);
 }
 
+Direction Game::SetRandomDirectionToObject(Object& obj){
+    Direction dirs[] = {Direction::LEFT,
+			Direction::RIGHT,
+			Direction::UP,
+			Direction::DOWN};
+    Direction dir = dirs[RandInt(0, 3)];
+    dir = Direction::LEFT;
+    obj.SetDirection(dir);
+    return dir;
+
+}
+
 void Game::MovePlayer(Direction dir)
 {
 
@@ -78,6 +90,7 @@ void Game::MovePlayer(Direction dir)
     // 1-1. Normal movements
     ProcessYOU(dir);
     ProcessMOVE();
+    ProcessSHIFT();
     ParseRules();
     // ===========================
     // 2. Objects changes
@@ -337,6 +350,38 @@ void Game::ProcessYOU(Direction dir)
     ResolveAllMoveFlags();
 }
 
+
+void Game::ProcessSHIFT() // TODO
+{
+    Direction dir;
+    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::SHIFT);
+
+    for (auto& [obj_id, x, y] : obj_ids){
+    	Object& obj = m_map.GetObject(obj_id, x, y);
+    	dir = obj.GetDirection();
+    	if (dir == Direction::NONE){
+    	    dir = SetRandomDirectionToObject(obj);
+    	}
+    	for (auto& tgtObj: m_map.GetObjects(x, y)){
+    	    if (tgtObj.GetId() == obj.GetId()) continue;
+    	    tgtObj.SetDirection(dir);
+    	    tgtObj.SetMoveFlag(dir);
+    	}
+    }
+    // add PUSH flags (TODO)
+    int _x;
+    int _y;
+    for (auto& [obj_id, x, y] : obj_ids){
+    	Object& obj = m_map.GetObject(obj_id, x, y);
+    	dir = obj.GetDirection();
+    	std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+    	SetPushedDirToObjects(_x, _y, dir);
+    }
+
+    ResolveAllMoveFlags();
+}
+
+
 void Game::ProcessMOVE()
 {
     int _x;
@@ -349,11 +394,12 @@ void Game::ProcessMOVE()
     	Object& obj = m_map.GetObject(obj_id, x, y);
 	dir = obj.GetDirection();
 	if (dir == Direction::NONE){
-	    Direction dirs[] = {Direction::LEFT,
-				Direction::RIGHT,
-				Direction::UP,
-				Direction::DOWN};
-	    obj.SetDirection(dirs[RandInt(0, 3)]);
+	    // Direction dirs[] = {Direction::LEFT,
+	    // 			Direction::RIGHT,
+	    // 			Direction::UP,
+	    // 			Direction::DOWN};
+	    // obj.SetDirection(dirs[RandInt(0, 3)]);
+	    dir = SetRandomDirectionToObject(obj);
 	    dir = obj.GetDirection();
 	}
 	revdir = GetReverseDirection(dir);
@@ -569,6 +615,10 @@ void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
 	if (m_ruleManager.HasType(*itr, ObjectType::PUSH)){
 	    // Skipped if an object was already pushed from another direction (e.g., MOVE objects can push an object from two directions).
 	    if (itr->GetMoveFlag() == Direction::NONE){
+		if (CanMove(x, y, dir, *itr)){
+		    itr->SetMoveFlag(dir);
+		    itr->SetDirection(dir);
+		}
 		itr->SetMoveFlag(dir);
 		itr->SetDirection(dir);
 		continue_pushing = true;
@@ -642,8 +692,8 @@ void Game::ResolveAllMoveFlags(){
     const std::size_t width = m_map.GetWidth();
     const std::size_t height = m_map.GetHeight();
 
-    std::vector<std::tuple<ObjectId, size_t, size_t, size_t, size_t>> objsMoveSchedule;
-    std::tuple<ObjectId, size_t, size_t, size_t, size_t> s;
+    std::vector<std::tuple<ObjectId, size_t, size_t, Direction>> objsMoveSchedule;
+    std::tuple<ObjectId, size_t, size_t, Direction> s;
 
     for (std::size_t y = 0; y < height; ++y){
         for (std::size_t x = 0; x < width; ++x){
@@ -659,20 +709,20 @@ void Game::ResolveAllMoveFlags(){
 		    // 	      << y << " "
 		    // 	      << std::endl;
 
-		    std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
 		    itr->SetMoveFlag(Direction::NONE);
-
-		    s = std::make_tuple(itr->GetId(), x, y, _x, _y);
+		    s = std::make_tuple(itr->GetId(), x, y, dir);
 		    objsMoveSchedule.emplace_back(s);
 		}
 	    }
         }
     }
-
-    for (auto& [obj_id, x, y, _x, _y] : objsMoveSchedule){
+    for (auto& [obj_id, x, y, dir] : objsMoveSchedule){
 	Object& obj = m_map.GetObject(obj_id, x, y);
-	m_map.AddObject(_x, _y, obj);
-	m_map.RemoveObject(x, y, obj);
+	std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
+	if (CanMove(x, y, dir, obj)){
+	    m_map.AddObject(_x, _y, obj);
+	    m_map.RemoveObject(x, y, obj);
+	}
     }
 
 }

@@ -93,6 +93,7 @@ class Game
     void ProcessYOU(Direction dir);
     void ProcessMOVE();
     void ProcessIS();
+    void ProcessSHIFT();
 
     bool ProcessSINK();
     bool ProcessHOTAndMELT();
@@ -101,6 +102,7 @@ class Game
     //! Checks the play state of the game.
     void CheckPlayState();
     void SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir);
+    Direction SetRandomDirectionToObject(Object&);
     void ResolveAllMoveFlags();
     void ResolveAllRemoveFlags();
     void ResolveAllChangeFlags();
