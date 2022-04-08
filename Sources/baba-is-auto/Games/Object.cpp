@@ -22,6 +22,7 @@ Object::Object(ObjectType type, Direction dir){
     m_direction = dir;
     m_move_direction = Direction::NONE;
     m_is_removed = false;
+    m_change_to = type;
     SetNewObjectId();
 }
 

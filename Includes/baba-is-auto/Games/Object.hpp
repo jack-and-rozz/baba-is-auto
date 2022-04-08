@@ -34,7 +34,6 @@ namespace baba_is_auto
 //!
 
 using ObjectId = std::size_t;
-//using Axis = std::size_t;
 
 class Object
 {
@@ -48,8 +47,10 @@ class Object
     inline ObjectId GetId() const { return m_id; }
     inline ObjectType GetType() const { return m_type; }
     inline Direction GetDirection() const { return m_direction; }
+
     inline Direction GetMoveFlag() const { return m_move_direction; }
     inline bool GetRemoveFlag() const { return m_is_removed; }
+    inline ObjectType GetChangeFlag() const { return m_change_to; }
 
     // std::unordered_set<ObjectType> GetProperties() const;
     // bool HasProperty(ObjectType type) const;
@@ -61,6 +62,7 @@ class Object
     inline void SetDirection(Direction dir){ m_direction = dir; }
     inline void SetMoveFlag(Direction dir) { m_move_direction = dir; }
     inline void SetRemoveFlag(bool flag){ m_is_removed=flag; }
+    inline void SetChangeFlag(ObjectType type){ m_change_to=type; }
 
  private:
     ObjectId m_id;
@@ -70,10 +72,11 @@ class Object
     // Temporal Flags to resolve rules simultaneously.
     Direction m_move_direction;
     bool m_is_removed;
+    ObjectType m_change_to;
 
     /* Notes (letra418):
        m_properties are Currently not used.
-       Which is better properties are assigned to each object after parsing rules or to ask RuleManager whether an object has a property?
+       Which is better, properties are assigned to each object after parsing rules or to ask RuleManager whether an object has a property?
      */
     // std::unordered_set<ObjectType> m_properties;
 };

@@ -60,8 +60,8 @@ class Game
     void MovePlayer(Direction dir);
 
     // Object& GetObject(std::size_t obj_id, std::size_t x, std::size_t y);
-    std::vector<PositionalObject> FindObjectIdsAndPositionsByProperty(ObjectType property);
-    
+    std::vector<PositionalObject> FindObjectIdsAndPositionsByType(ObjectType property);
+
     int RandInt(int min, int max);
 
  private:
@@ -103,6 +103,7 @@ class Game
     void SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir);
     void ResolveAllMoveFlags();
     void ResolveAllRemoveFlags();
+    void ResolveAllChangeFlags();
 
     Map m_map;
     RuleManager m_ruleManager;

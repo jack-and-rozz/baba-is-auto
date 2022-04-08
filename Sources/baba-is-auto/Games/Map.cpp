@@ -77,6 +77,7 @@ void Map::RemoveObject(std::size_t x, std::size_t y, const Object& obj)
     m_squares.at(y * m_width + x).RemoveObject(obj);
 }
 
+
 Square& Map::At(std::size_t x, std::size_t y)
 {
     return m_squares.at(y * m_width + x);

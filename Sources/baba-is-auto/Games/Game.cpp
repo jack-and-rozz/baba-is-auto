@@ -272,7 +272,7 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
 
-	if (m_ruleManager.HasType(obj, ObjectType::PUSH) && 
+	if (m_ruleManager.HasType(obj, ObjectType::PUSH) &&
 	    !CanMove(_x, _y, dir, obj)){
 	    return false;
 	}
@@ -285,10 +285,10 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 
 void Game::ProcessYOU(Direction dir)
 {
-    if (dir != Direction::NONE) { return; }
+    if (dir == Direction::NONE) { return; }
     int _x;
     int _y;
-    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
+    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::YOU);
 
 
     /*
@@ -343,13 +343,12 @@ void Game::ProcessMOVE()
     int _y;
     Direction dir;
     Direction revdir;
-    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::MOVE);
+    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::MOVE);
 
     for (auto& [obj_id, x, y] : obj_ids){
     	Object& obj = m_map.GetObject(obj_id, x, y);
 	dir = obj.GetDirection();
 	if (dir == Direction::NONE){
-	    // In the original, objects with no initial direction have a random direction when it is needed.
 	    Direction dirs[] = {Direction::LEFT,
 				Direction::RIGHT,
 				Direction::UP,
@@ -389,13 +388,62 @@ void Game::ProcessMOVE()
 
 void Game::ProcessIS()
 {
+    auto is_noun_rules = m_ruleManager.GetRules(ObjectType::IS);
 
+    for (auto& rule: is_noun_rules){
+	ObjectType subjType = rule.GetSubject();
+	ObjectType predType = rule.GetPredicate();
+	if (IsPropertyType(predType) || rule.GetOperator() != ObjectType::IS) continue;
+
+	subjType = (subjType != ObjectType::TEXT) ? ConvertTextToIcon(subjType) : subjType;
+	predType = (predType != ObjectType::TEXT) ? ConvertTextToIcon(predType) : ConvertIconToText(subjType);
+
+	auto obj_ids = FindObjectIdsAndPositionsByType(subjType);
+	for (auto& [obj_id, x, y] : obj_ids){
+	    Object& obj = m_map.GetObject(obj_id, x, y);
+	    obj.SetChangeFlag(predType);
+	}
+    }
+    ResolveAllChangeFlags();
+
+    // auto itr = std::remove_if(m_objects.begin(), m_objects.end(), 
+    // 			      [&](Object x){
+    // 				  return x.GetType() == type; 
+    // 			      }); 
+    // // auto obj_ids = 
+    // for (std::vector<int>:iterator it = std::find_if(v.begin(), v.end(), IsOdd);
+    // 	 it != v.end();
+    // 	 it = std::find_if(++it, v.end(), IsOdd))
+    // 	{
+    // 	    // ...
+    // 	}
+
+    // auto rules = m_ruleManager.GetRules([&](Rule r){
+    // 					    if (IsNounType(r.GetSubject()) && 
+    // 						r.GetOperator() == ObjectType::IS && 
+    // 						IsNounType(r.GetPredicate()))
+    // 						{
+    // 						    return true;
+    // 						}
+    // 					    else
+    // 						{
+    // 						    return false;
+    // 						}
+    // 					});
+    // for (auto& rule : rules){
+    // 	std::cout << rule.GetSubject() << " "
+    // 		  << rule.GetOperator() << " "
+    // 		  << rule.GetObject() << " "
+    // 		  << std::endl;
+    // }
+
+    return;
 }
 
 bool Game::ProcessSINK()
 {
     bool happened = false;
-    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::SINK);
+    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::SINK);
 
     // All objects on SINK object and itself are removed.
     for (auto& [_, x, y] : obj_ids){
@@ -414,7 +462,7 @@ bool Game::ProcessSINK()
 bool Game::ProcessHOTAndMELT()
 {
     bool happened = false;
-    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::MELT);
+    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::MELT);
     for (auto& [melt_id, x, y] : obj_ids){
 	auto& meltObj = m_map.GetObject(melt_id, x, y);
 
@@ -432,7 +480,7 @@ bool Game::ProcessHOTAndMELT()
 bool Game::ProcessDEFEAT()
 {
     bool happened = false;
-    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
+    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::YOU);
     for (auto& [you_id, x, y] : obj_ids){
 	auto& youObj = m_map.GetObject(you_id, x, y);
 
@@ -468,7 +516,7 @@ void Game::CheckPlayState() // todo
         return;
     }
 
-    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
+    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::YOU);
     if (obj_ids.empty())
     {
         m_playState = PlayState::LOST;
@@ -485,7 +533,7 @@ void Game::CheckPlayState() // todo
 }
 
 // Instead of returning references to objects, this function returns tuples of (ObjectId, X, Y). This is due to subsequent lost of references caused by memory reallocation of std::vector when an object is moved from a square to another square..
-std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectType property){
+std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByType(ObjectType objtype){
     std::vector<PositionalObject> res;
 
     const std::size_t width = m_map.GetWidth();
@@ -495,7 +543,10 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByProperty(ObjectTy
         for (std::size_t x = 0; x < width; ++x){
 	    ObjectContainer& objs = m_map.GetObjects(x, y);
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
-		if (m_ruleManager.HasType(*itr, property)){
+		if (IsIconType(objtype) && (itr->GetType() == objtype)){
+		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
+		    res.emplace_back(t);
+		} else if (IsPropertyType(objtype) && m_ruleManager.HasType(*itr, objtype)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
 		    // std::tuple t = std::tie(itr->GetId(), x, y);
 		    res.emplace_back(t);
@@ -534,6 +585,31 @@ void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
     return;
 }
 
+
+void Game::ResolveAllChangeFlags(){
+    const std::size_t width = m_map.GetWidth();
+    const std::size_t height = m_map.GetHeight();
+    ObjectType change_to;
+    std::vector<std::tuple<ObjectId, size_t, size_t, ObjectType>> objsChangeSchedule;
+    std::tuple<ObjectId, size_t, size_t, ObjectType> s;
+    for (std::size_t y = 0; y < height; ++y){
+        for (std::size_t x = 0; x < width; ++x){
+	    ObjectContainer& objs = m_map.GetObjects(x, y);
+	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
+		change_to = itr->GetChangeFlag();
+		if (change_to != itr->GetType()){
+		    s = std::make_tuple(itr->GetId(), x, y, change_to);
+		    objsChangeSchedule.emplace_back(s);
+		}
+	    }
+	}
+    }
+    for (auto& [obj_id, x, y, change_to] : objsChangeSchedule){
+	Object& obj = m_map.GetObject(obj_id, x, y);
+	obj.SetType(change_to);
+	obj.SetChangeFlag(change_to);
+    }
+}
 
 void Game::ResolveAllRemoveFlags(){
     const std::size_t width = m_map.GetWidth();

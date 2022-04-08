@@ -61,23 +61,78 @@ std::size_t RuleManager::GetNumRules() const
 }
 
 
+// std::vector<Rule> RuleManager::GetRules(std::function<bool(Rule)> fn) const
+// {
+//     std::vector<Rule> ret;
+//     for (auto itr = std::find_if(m_rules.begin(), m_rules.end(), fn);
+// 	 itr != m_rules.end();
+// 	 itr = std::find_if(++itr, m_rules.end(), fn))
+// 	{
+//             ret.emplace_back(itr);
+// 	}
+//     return ret;
+
+    // for (auto& itr = std::find_if)
+    // {
+    //     if (fn(rule))
+    //     {
+    //         ret.emplace_back(rule);
+    //     }
+    // }
+
+    // return ret;
+// }
+
+
 bool RuleManager::HasType(const Object& obj, ObjectType tgtType) const {
     auto objType = obj.GetType();
     objType = IsIconType(objType) ? ConvertIconToText(objType) : ObjectType::TEXT;
- 
-    // TEXT is always PUSH
+
+    // TEXT IS PUSH, LEVEL IS STOP, CURSOR IS SELECT, the three rules always implicitly exist.
     if ((objType == ObjectType::TEXT) && (tgtType == ObjectType::PUSH)){
 	return true;
     }
 
     for (auto& rule : m_rules){
-	if ((rule.GetSubject() == objType) &&
-	    (rule.GetOperator() == ObjectType::IS) &&
-	    (rule.GetPredicate() == tgtType)){
+	if (IsPropertyType(tgtType)){
+	    if ((rule.GetSubject() == objType) &&
+		(rule.GetOperator() == ObjectType::IS) &&
+		(rule.GetPredicate() == tgtType)){
 		return true;
 	    }
+	}
+	// else if (IsVerbType(tgtType)) {
+	//     if ((rule.GetSubject() == objType) &&
+	// 	(rule.GetOperator() == tgtType)){
+	// 	return true;
+	//     }
+	// }
     }
     return false;
 }
 
 }  // namespace baba_is_auto
+
+
+/*
+どういうruleの持ち方をすべきだろうか？
+
+<現在のRule, RuleMangerについて>
+- Ruleは ObjectType (Noun, Op, Verb, Property) を要素として持つtripleのwrapper. 修飾子は未実装。
+- RuleManagerはそのvectorのwrapper.
+- ルールのparseはGame::ParseRules
+- あるObjectTypeに関してルールが存在するかの判定はRuleManager::HasType
+
+- ルール自体の適用はGameクラス内の各処理でHasTypeを用いて条件分岐し、直接書いている
+  * Noun, PropertyなどのType自体をクラスに分割し、関数処理としてルールの実行を適用可能か？
+  * ルール自体はTypeの組み合わせとなるため、PropertyではなくRule側にapplyを書く必要がある
+    * 実際の効果自体はPropertyの方に実装する必要がある。
+     * 例えば、nA EAT nB などのVerbがメインのタイプならEATのsrc/tgをmapから探してきてverb.apply(nA, nB) のような形？
+     * Propertyが主導となるタイプ nA IS PROP は prop.apply(nA) となる。ただ、この処理は独立には不可能じゃないか？
+       * 実行順、同時解決の問題がある
+       * PUSHのようにYOU, MOVEから誘発される処理はどうなる？
+       * 結局現状のように、各ルールの適用は関数として直接書くのが無難か
+
+
+
+*/
