@@ -112,7 +112,7 @@ bool RuleManager::HasType(const Object& obj, ObjectType tgtType) const {
 }
 
 
-void RuleManager::ParseRules(Map& map)
+void RuleManager::ParseRules(const Map& map)
 {
     ClearRules();
 

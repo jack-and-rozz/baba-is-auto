@@ -52,7 +52,7 @@ class RuleManager
     //! \return The flag indicates that an object has specific property.
 
     bool HasType(const Object& obj, ObjectType type) const;
-    void ParseRules(Map& map);
+    void ParseRules(const Map& map);
     void ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirection direction);
 
  private:
