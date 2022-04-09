@@ -88,7 +88,8 @@ bool RuleManager::HasType(const Object& obj, ObjectType tgtType) const {
     auto objType = obj.GetType();
     objType = IsIconType(objType) ? ConvertIconToText(objType) : ObjectType::TEXT;
 
-    // TEXT IS PUSH, LEVEL IS STOP, CURSOR IS SELECT, the three rules always implicitly exist.
+    // The three rules always implicitly exist unless denied.
+    // (TEXT IS PUSH, LEVEL IS STOP, CURSOR IS SELECT)
     if ((objType == ObjectType::TEXT) && (tgtType == ObjectType::PUSH)){
 	return true;
     }
@@ -144,13 +145,16 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
     const std::size_t width = map.GetWidth();
     const std::size_t height = map.GetHeight();
 
+    /* Notes (letra418):
+       Currently some cases are ignored where two texts are overlapping.
+     */
+
     if (direction == RuleDirection::HORIZONTAL)
     {
         if (x + 2 >= width)
         {
             return;
         }
-	// Currently an edge case is ignored where two texts are overlapping.
 
         if (map.At(x, y).HasNounType() && map.At(x + 1, y).HasVerbType() &&
             (map.At(x + 2, y).HasNounType() ||
