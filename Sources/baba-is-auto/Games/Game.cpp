@@ -12,7 +12,7 @@ namespace baba_is_auto
 Game::Game(std::string_view filename)
 {
     m_map.Load(filename);
-    ParseRules();
+    m_ruleManager.ParseRules(m_map);
     m_playState = PlayState::PLAYING;
 
     std::random_device rnd;
@@ -22,9 +22,7 @@ Game::Game(std::string_view filename)
 void Game::Reset()
 {
     m_map.Reset();
-
-    ParseRules();
-
+    m_ruleManager.ParseRules(m_map);
     m_playState = PlayState::PLAYING;
 }
 
@@ -91,108 +89,27 @@ void Game::MovePlayer(Direction dir)
     ProcessYOU(dir);
     ProcessMOVE();
     ProcessSHIFT();
-    ParseRules();
+    m_ruleManager.ParseRules(m_map);
     // ===========================
     // 2. Objects changes
     ProcessIS();
-    ParseRules();
+    m_ruleManager.ParseRules(m_map);
 
     // ===========================
     // 3. Special Movements
     // ProcessTele();
-    // ParseRules();
+    // m_ruleManager.ParseRules(m_map);
 
     // ===========================
     // 4. Objects vanishments
     ProcessSINK();
     ProcessHOTAndMELT();
     ProcessDEFEAT();
-    ParseRules();
+    m_ruleManager.ParseRules(m_map);
 
     // ===========================
     // 5. Check Won/List
     CheckPlayState();
-}
-
-void Game::ParseRules()
-{
-    m_ruleManager.ClearRules();
-
-    const std::size_t width = m_map.GetWidth();
-    const std::size_t height = m_map.GetHeight();
-
-    for (std::size_t y = 0; y < height; ++y)
-    {
-        for (std::size_t x = 0; x < width; ++x)
-        {
-            m_map.At(x, y).isRule = false;
-        }
-    }
-
-    for (std::size_t y = 0; y < height; ++y)
-    {
-        for (std::size_t x = 0; x < width; ++x)
-        {
-            ParseRule(x, y, RuleDirection::HORIZONTAL);
-            ParseRule(x, y, RuleDirection::VERTICAL);
-        }
-    }
-
-    // m_playerIcons = m_ruleManager.GetSubjectsByPredicate(ObjectType::YOU);
-}
-
-void Game::ParseRule(std::size_t x, std::size_t y, RuleDirection direction)
-{
-    const std::size_t width = m_map.GetWidth();
-    const std::size_t height = m_map.GetHeight();
-
-    if (direction == RuleDirection::HORIZONTAL)
-    {
-        if (x + 2 >= width)
-        {
-            return;
-        }
-	// Currently an edge case is ignored where two texts are overlapping.
-
-        if (m_map.At(x, y).HasNounType() && m_map.At(x + 1, y).HasVerbType() &&
-            (m_map.At(x + 2, y).HasNounType() ||
-             m_map.At(x + 2, y).HasPropertyType()))
-	{
-	    auto type1 = m_map.At(x, y).GetTextObjects()[0].GetType();
-	    auto type2 = m_map.At(x + 1, y).GetTextObjects()[0].GetType();
-	    auto type3 = m_map.At(x + 2, y).GetTextObjects()[0].GetType();
-
-	    Rule newRule = Rule(type1, type2, type3);
-	    m_ruleManager.AddRule(newRule);
-
-	    m_map.At(x, y).isRule = true;
-	    m_map.At(x + 1, y).isRule = true;
-	    m_map.At(x + 2, y).isRule = true;
-	}
-    }
-    else if (direction == RuleDirection::VERTICAL)
-    {
-        if (y + 2 >= height)
-        {
-            return;
-        }
-
-        if (m_map.At(x, y).HasNounType() && m_map.At(x, y + 1).HasVerbType() &&
-            (m_map.At(x, y + 2).HasNounType() ||
-             m_map.At(x, y + 2).HasPropertyType()))
-	{
-	    auto type1 = m_map.At(x, y).GetTextObjects()[0].GetType();
-	    auto type2 = m_map.At(x, y + 1).GetTextObjects()[0].GetType();
-	    auto type3 = m_map.At(x, y + 2).GetTextObjects()[0].GetType();
-
-	    Rule newRule = Rule(type1, type2, type3);
-	    m_ruleManager.AddRule(newRule);
-
-            m_map.At(x, y).isRule = true;
-            m_map.At(x, y + 1).isRule = true;
-            m_map.At(x, y + 2).isRule = true;
-	}
-    }
 }
 
 Direction GetReverseDirection(Direction dir){
@@ -350,7 +267,6 @@ void Game::ProcessYOU(Direction dir)
     ResolveAllMoveFlags();
 }
 
-// TODO: 何もBELTの上になくても、進行方向へのPUSHが発生してしまう
 void Game::ProcessSHIFT()
 {
     Direction dir;
@@ -368,12 +284,12 @@ void Game::ProcessSHIFT()
     	    tgtObj.SetMoveFlag(dir);
     	}
     }
-    // add PUSH flags (TODO)
+
     int _x;
     int _y;
     for (auto& [obj_id, x, y] : obj_ids){
     	Object& obj = m_map.GetObject(obj_id, x, y);
-	// If there is no objects on the SHIFT object, it pushes nothing.
+	// If there are no objects on the SHIFT object, it pushes nothing.
 	bool something_on_shift = false;
     	dir = obj.GetDirection();
 	for (auto& tgtObj: m_map.GetObjects(x, y)){
@@ -403,11 +319,6 @@ void Game::ProcessMOVE()
     	Object& obj = m_map.GetObject(obj_id, x, y);
 	dir = obj.GetDirection();
 	if (dir == Direction::NONE){
-	    // Direction dirs[] = {Direction::LEFT,
-	    // 			Direction::RIGHT,
-	    // 			Direction::UP,
-	    // 			Direction::DOWN};
-	    // obj.SetDirection(dirs[RandInt(0, 3)]);
 	    dir = SetRandomDirectionToObject(obj);
 	    dir = obj.GetDirection();
 	}

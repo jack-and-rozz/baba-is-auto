@@ -111,6 +111,89 @@ bool RuleManager::HasType(const Object& obj, ObjectType tgtType) const {
     return false;
 }
 
+
+void RuleManager::ParseRules(Map& map)
+{
+    ClearRules();
+
+    const std::size_t width = map.GetWidth();
+    const std::size_t height = map.GetHeight();
+
+    for (std::size_t y = 0; y < height; ++y)
+    {
+        for (std::size_t x = 0; x < width; ++x)
+        {
+            map.At(x, y).isRule = false;
+        }
+    }
+
+    for (std::size_t y = 0; y < height; ++y)
+    {
+        for (std::size_t x = 0; x < width; ++x)
+        {
+            ParseRule(map, x, y, RuleDirection::HORIZONTAL);
+            ParseRule(map, x, y, RuleDirection::VERTICAL);
+        }
+    }
+
+    // m_playerIcons = m_ruleManager.GetSubjectsByPredicate(ObjectType::YOU);
+}
+
+void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirection direction)
+{
+    const std::size_t width = map.GetWidth();
+    const std::size_t height = map.GetHeight();
+
+    if (direction == RuleDirection::HORIZONTAL)
+    {
+        if (x + 2 >= width)
+        {
+            return;
+        }
+	// Currently an edge case is ignored where two texts are overlapping.
+
+        if (map.At(x, y).HasNounType() && map.At(x + 1, y).HasVerbType() &&
+            (map.At(x + 2, y).HasNounType() ||
+             map.At(x + 2, y).HasPropertyType()))
+	{
+	    auto type1 = map.At(x, y).GetTextObjects()[0].GetType();
+	    auto type2 = map.At(x + 1, y).GetTextObjects()[0].GetType();
+	    auto type3 = map.At(x + 2, y).GetTextObjects()[0].GetType();
+
+	    Rule newRule = Rule(type1, type2, type3);
+	    AddRule(newRule);
+
+	    map.At(x, y).isRule = true;
+	    map.At(x + 1, y).isRule = true;
+	    map.At(x + 2, y).isRule = true;
+	}
+    }
+    else if (direction == RuleDirection::VERTICAL)
+    {
+        if (y + 2 >= height)
+        {
+            return;
+        }
+
+        if (map.At(x, y).HasNounType() && map.At(x, y + 1).HasVerbType() &&
+            (map.At(x, y + 2).HasNounType() ||
+             map.At(x, y + 2).HasPropertyType()))
+	{
+	    auto type1 = map.At(x, y).GetTextObjects()[0].GetType();
+	    auto type2 = map.At(x, y + 1).GetTextObjects()[0].GetType();
+	    auto type3 = map.At(x, y + 2).GetTextObjects()[0].GetType();
+
+	    Rule newRule = Rule(type1, type2, type3);
+	    AddRule(newRule);
+
+            map.At(x, y).isRule = true;
+            map.At(x, y + 1).isRule = true;
+            map.At(x, y + 2).isRule = true;
+	}
+    }
+}
+
+
 }  // namespace baba_is_auto
 
 

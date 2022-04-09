@@ -7,6 +7,8 @@
 #ifndef BABA_IS_AUTO_RULE_MANAGER_HPP
 #define BABA_IS_AUTO_RULE_MANAGER_HPP
 
+
+#include <baba-is-auto/Enums/RuleEnums.hpp>
 #include <baba-is-auto/Rules/Rule.hpp>
 #include <baba-is-auto/Games/Map.hpp>
 
@@ -50,6 +52,8 @@ class RuleManager
     //! \return The flag indicates that an object has specific property.
 
     bool HasType(const Object& obj, ObjectType type) const;
+    void ParseRules(Map& map);
+    void ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirection direction);
 
  private:
     std::vector<Rule> m_rules;

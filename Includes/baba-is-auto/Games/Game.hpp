@@ -7,7 +7,6 @@
 #ifndef BABA_IS_AUTO_GAME_HPP
 #define BABA_IS_AUTO_GAME_HPP
 
-#include <baba-is-auto/Enums/RuleEnums.hpp>
 #include <baba-is-auto/Games/Map.hpp>
 #include <baba-is-auto/Rules/RuleManager.hpp>
 
@@ -66,13 +65,13 @@ class Game
 
  private:
     //! Parses a list of rules.
-    void ParseRules();
+    // void ParseRules();
 
-    //! Parses a rule that satisfies the condition and starts from this (x, y).
-    //! \param x The x position.
-    //! \param y The y position.
-    //! \param direction The direction to check the rule.
-    void ParseRule(std::size_t x, std::size_t y, RuleDirection direction);
+    // //! Parses a rule that satisfies the condition and starts from this (x, y).
+    // //! \param x The x position.
+    // //! \param y The y position.
+    // //! \param direction The direction to check the rule.
+    // void ParseRule(std::size_t x, std::size_t y, RuleDirection direction);
 
     //! Checks an object can move.
     //! \param x The x position.
