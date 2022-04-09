@@ -350,8 +350,8 @@ void Game::ProcessYOU(Direction dir)
     ResolveAllMoveFlags();
 }
 
-
-void Game::ProcessSHIFT() // TODO
+// TODO: 何もBELTの上になくても、進行方向へのPUSHが発生してしまう
+void Game::ProcessSHIFT()
 {
     Direction dir;
     auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::SHIFT);
@@ -373,7 +373,16 @@ void Game::ProcessSHIFT() // TODO
     int _y;
     for (auto& [obj_id, x, y] : obj_ids){
     	Object& obj = m_map.GetObject(obj_id, x, y);
+	// If there is no objects on the SHIFT object, it pushes nothing.
+	bool something_on_shift = false;
     	dir = obj.GetDirection();
+	for (auto& tgtObj: m_map.GetObjects(x, y)){
+	    if (tgtObj.GetId() != obj.GetId()){
+		something_on_shift = true;
+	    }
+	}
+	if (!something_on_shift) continue;
+
     	std::tie(_x, _y) = GetPositionAfterMove(x, y, dir);
     	SetPushedDirToObjects(_x, _y, dir);
     }
