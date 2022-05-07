@@ -164,9 +164,12 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
     TypeSequence seq = longest_seq;
 
     // Starting from the longest sequence, continue slicing a text block and judging whether a current sequence is valid as a rule.
+
+
     while (true) {
+	if (seq.size() < 3) break;
 	Rule rule = Rule(seq);
-	if ((direction == RuleDirection::HORIZONTAL) && rule.isValid()){
+	if ((direction == RuleDirection::HORIZONTAL) && rule.IsValid()){
 	    for (std::size_t xx=x; xx<x+seq.size(); ++xx){
 		map.At(xx, y).isRule = true;
 	    }
@@ -174,8 +177,9 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
 	    break;
 	}
 
-	std::slice s(0, seq.size() - 1, 1);
-	seq = seq[s];
+	// std::slice s(0, seq.size() - 1, 1);
+	// seq = seq[s];
+	seq = TypeSequence(seq.begin(), seq.end()-1);
     }
 
 

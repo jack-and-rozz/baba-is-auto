@@ -10,6 +10,7 @@
 #include <baba-is-auto/Games/Object.hpp>
 
 #include <tuple>
+#include <valarray>
 
 namespace baba_is_auto
 {
@@ -27,26 +28,28 @@ class Rule
     //! \param obj1 A first object.
     //! \param obj2 A second object.
     //! \param obj3 A third object.
+
     Rule(TypeSequence);
 
     //! Operator overloading for ==.
     //! \param rhs A right side of Rule object.
     //! \return The value that indicates two objects are equal.
-    // bool operator==(const Rule& rhs) const;
+    bool operator==(const Rule& rhs) const;
 
-    // std::tuple<ObjectType, ObjectType, ObjectType> objectTypes;
+    //std::tuple<ObjectType, ObjectType, ObjectType> objectTypes;
+    TypeSequence objectTypes;
 
-    // ObjectType GetSubject() const;
-    // ObjectType GetOperator() const;
-    // ObjectType GetPredicate() const;
-    bool isValid();
+    ObjectType GetSubject() const;
+    ObjectType GetOperator() const;
+    ObjectType GetPredicate() const;
+    bool IsValid() const;
  private:
     //Rule* m_left = null;
-    std::unique_ptr<Rule> m_left;
-    std::unique_ptr<Rule> m_right;
-    ObjectType m_center;
-    bool m_is_valid;
-    void ParseTree(TypeSequence);
+    // std::unique_ptr<Rule> m_left;
+    // std::unique_ptr<Rule> m_right;
+    // ObjectType m_center;
+    // bool m_is_valid;
+    // void ParseTree(TypeSequence);
 };
 
 

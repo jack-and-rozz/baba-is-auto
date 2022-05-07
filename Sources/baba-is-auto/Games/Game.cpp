@@ -71,7 +71,6 @@ void Game::MovePlayer(Direction dir)
 
     /*
       Notes (letra418):
-      Strictly speaking, the current order of each process is incomplete.
       In the original baba-is-you, parsing of rules occurs many times in a step and the flow is as follows:
       1. normal movements (YOU, move, fear, shift, etc.) -> rule parsing
       2. object changes (is, up/down/right/left, etc.)-> rule parsing
