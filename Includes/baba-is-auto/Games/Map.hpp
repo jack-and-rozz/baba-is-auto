@@ -80,6 +80,8 @@ class Map
     const ObjectContainer& GetObjects(std::size_t x, std::size_t y)  const;
     ObjectContainer& GetObjects(std::size_t x, std::size_t y);
 
+    // bool HasTextType(std::size_t x, std::size_t y) const;
+
  private:
     // std::size_t m_maxObjId = 0;
     std::size_t m_width = 0;

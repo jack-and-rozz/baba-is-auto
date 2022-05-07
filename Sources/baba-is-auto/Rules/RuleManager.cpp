@@ -140,61 +140,102 @@ void RuleManager::ParseRules(Map& map)
     // m_playerIcons = m_ruleManager.GetSubjectsByPredicate(ObjectType::YOU);
 }
 
+
 void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirection direction)
 {
-    const std::size_t width = map.GetWidth();
-    const std::size_t height = map.GetHeight();
 
     /* Notes (letra418):
-       Currently some cases are ignored where two texts are overlapping.
-     */
+       Currently cases where two overlapping texts exist are ignored.
+    */
 
-    if (direction == RuleDirection::HORIZONTAL)
-    {
-        if (x + 2 >= width)
-        {
-            return;
-        }
-
-        if (map.At(x, y).HasNounType() && map.At(x + 1, y).HasVerbType() &&
-            (map.At(x + 2, y).HasNounType() ||
-             map.At(x + 2, y).HasPropertyType()))
-	{
-	    auto type1 = map.At(x, y).GetTextObjects()[0].GetType();
-	    auto type2 = map.At(x + 1, y).GetTextObjects()[0].GetType();
-	    auto type3 = map.At(x + 2, y).GetTextObjects()[0].GetType();
-
-	    Rule newRule = Rule(type1, type2, type3);
-	    AddRule(newRule);
-
-	    map.At(x, y).isRule = true;
-	    map.At(x + 1, y).isRule = true;
-	    map.At(x + 2, y).isRule = true;
-	}
+    TypeSequence longest_seq;
+    if (direction == RuleDirection::HORIZONTAL){
+	const std::size_t width = map.GetWidth();
+    	for (std::size_t xx=x; xx<width; ++xx){
+    	    if (!map.At(xx, y).HasTextType()){
+    	        ObjectType type = map.At(xx, y).GetTextObjects()[0].GetType();
+    		longest_seq.emplace_back(type);
+    	    } else {
+    		break;
+    	    }
+    	}
     }
-    else if (direction == RuleDirection::VERTICAL)
-    {
-        if (y + 2 >= height)
-        {
-            return;
-        }
 
-        if (map.At(x, y).HasNounType() && map.At(x, y + 1).HasVerbType() &&
-            (map.At(x, y + 2).HasNounType() ||
-             map.At(x, y + 2).HasPropertyType()))
-	{
-	    auto type1 = map.At(x, y).GetTextObjects()[0].GetType();
-	    auto type2 = map.At(x, y + 1).GetTextObjects()[0].GetType();
-	    auto type3 = map.At(x, y + 2).GetTextObjects()[0].GetType();
+    TypeSequence seq = longest_seq;
 
-	    Rule newRule = Rule(type1, type2, type3);
-	    AddRule(newRule);
-
-            map.At(x, y).isRule = true;
-            map.At(x, y + 1).isRule = true;
-            map.At(x, y + 2).isRule = true;
+    // Starting from the longest sequence, continue slicing a text block and judging whether a current sequence is valid as a rule.
+    while (true) {
+	Rule rule = Rule(seq);
+	if ((direction == RuleDirection::HORIZONTAL) && rule.isValid()){
+	    for (std::size_t xx=x; xx<x+seq.size(); ++xx){
+		map.At(xx, y).isRule = true;
+	    }
+	    AddRule(rule);
+	    break;
 	}
+
+	std::slice s(0, seq.size() - 1, 1);
+	seq = seq[s];
     }
+
+
+    // if ((direction == RuleDirection::VERTICAL) && rule.isValid()){
+    //     for (std::size_t yy=y; yy<y+seq.size(); ++yy){
+    // 	map.At(x, yy).isRule = true;
+    //     }
+    //     AddRule(rule);
+    //     return;
+    // }
+    
+    // const std::size_t width = map.GetWidth();
+    // const std::size_t height = map.GetHeight();
+
+    // if (direction == RuleDirection::HORIZONTAL)
+    // {
+    //     if (x + 2 >= width)
+    //     {
+    //         return;
+    //     }
+
+    //     if (map.At(x, y).HasNounType() && map.At(x + 1, y).HasVerbType() &&
+    //         (map.At(x + 2, y).HasNounType() ||
+    //          map.At(x + 2, y).HasPropertyType()))
+    // 	{
+    // 	    auto type1 = map.At(x, y).GetTextObjects()[0].GetType();
+    // 	    auto type2 = map.At(x + 1, y).GetTextObjects()[0].GetType();
+    // 	    auto type3 = map.At(x + 2, y).GetTextObjects()[0].GetType();
+
+    // 	    Rule newRule = Rule(type1, type2, type3);
+    // 	    AddRule(newRule);
+
+    // 	    map.At(x, y).isRule = true;
+    // 	    map.At(x + 1, y).isRule = true;
+    // 	    map.At(x + 2, y).isRule = true;
+    // 	}
+    // }
+    // else if (direction == RuleDirection::VERTICAL)
+    // {
+    //     if (y + 2 >= height)
+    //     {
+    //         return;
+    //     }
+
+    //     if (map.At(x, y).HasNounType() && map.At(x, y + 1).HasVerbType() &&
+    //         (map.At(x, y + 2).HasNounType() ||
+    //          map.At(x, y + 2).HasPropertyType()))
+    // 	{
+    // 	    auto type1 = map.At(x, y).GetTextObjects()[0].GetType();
+    // 	    auto type2 = map.At(x, y + 1).GetTextObjects()[0].GetType();
+    // 	    auto type3 = map.At(x, y + 2).GetTextObjects()[0].GetType();
+
+    // 	    Rule newRule = Rule(type1, type2, type3);
+    // 	    AddRule(newRule);
+
+    //         map.At(x, y).isRule = true;
+    //         map.At(x, y + 1).isRule = true;
+    //         map.At(x, y + 2).isRule = true;
+    // 	}
+    // }
 }
 
 

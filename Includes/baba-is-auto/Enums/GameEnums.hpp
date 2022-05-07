@@ -71,6 +71,30 @@ constexpr bool IsPropertyType(ObjectType type)
     return (type > ObjectType::PROPERTY_TYPE && type < ObjectType::ICON_TYPE);
 }
 
+constexpr bool IsAND(ObjectType type)
+{
+    return (type == ObjectType::AND);
+}
+
+constexpr bool IsNOT(ObjectType type)
+{
+    return (type == ObjectType::NOT);
+}
+
+
+constexpr bool IsPreModifierType(ObjectType type)
+{
+    return (type == ObjectType::LONELY);
+}
+
+constexpr bool IsPostModifierType(ObjectType type)
+{
+    return (type == ObjectType::ON || type == ObjectType::NEAR ||
+	    type == ObjectType::FACING);
+}
+
+
+
 //! Checks \p type is property type.
 //! \param type The object type.
 //! \return The flag that indicates it is icon type.

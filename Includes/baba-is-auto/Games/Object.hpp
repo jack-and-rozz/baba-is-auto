@@ -83,7 +83,7 @@ class Object
 
 using ObjectContainer = std::vector<Object>;
 using PositionalObject = std::tuple<ObjectId, size_t, size_t>;
-
+using TypeSequence std::vector<ObjectType>;
 // Squareの採用どうするか検討中。。。少なくともGame内で直接操作しないようにしよう
 class Square
 {
@@ -133,7 +133,7 @@ class Square
     bool HasPropertyType() const;
     bool HasTextType() const;
 
-    bool isRule = false;
+    bool isRule = false; // a flag showing whether the square consists a vaild rule.
     const ObjectContainer& GetObjects() const;
     ObjectContainer& GetObjects();
     ObjectContainer GetTextObjects() const;
