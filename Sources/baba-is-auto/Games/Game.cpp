@@ -88,11 +88,11 @@ void Game::MovePlayer(Direction dir)
     ProcessYOU(dir);
     ProcessMOVE();
     ProcessSHIFT();
-    m_ruleManager.ParseRules(m_map);
+    // m_ruleManager.ParseRules(m_map);
     // ===========================
     // 2. Objects changes
     ProcessIS();
-    m_ruleManager.ParseRules(m_map);
+    //m_ruleManager.ParseRules(m_map);
 
     // ===========================
     // 3. Special Movements

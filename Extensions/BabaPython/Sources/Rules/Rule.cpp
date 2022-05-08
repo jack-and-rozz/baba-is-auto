@@ -17,6 +17,7 @@ void AddRule(pybind11::module& m)
     //     .def(pybind11::init<Object, Object, Object>())
     //     .def("__eq__",
     //          [](const Rule& left, const Rule& right) { return left == right; });
+
     pybind11::class_<Rule>(m, "Rule")
         .def(pybind11::init<ObjectType, ObjectType, ObjectType>())
         .def("__eq__",

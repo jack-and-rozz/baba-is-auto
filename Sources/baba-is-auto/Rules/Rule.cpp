@@ -157,12 +157,17 @@ Rule = Subj VP
 
 namespace baba_is_auto
 {
-Rule::Rule(TypeSequence types)
-{
-    // ParseTree(types);
-    objectTypes = types;
-}
 
+// Rule::Rule(TypeSequence types)
+// {
+//     // ParseTree(types);
+//     objectTypes = types;
+// }
+
+Rule::Rule(ObjectType type1, ObjectType type2, ObjectType type3)
+{
+    objectTypes = { type1, type2, type3 };
+}
 
 
 // void Rule::ParseTree(TypeSequence types){
@@ -245,20 +250,20 @@ bool Rule::operator==(const Rule& rhs) const
 ObjectType Rule::GetSubject() const
 {
     // return ObjectType::BABA;
-    return objectTypes[0];
-    //return std::get<0>(objectTypes);
+    // return objectTypes[0];
+    return std::get<0>(objectTypes);
 }
 ObjectType Rule::GetOperator() const
 {
     // return ObjectType::IS;
-    return objectTypes[1];
-    //return std::get<1>(objectTypes);
+    // return objectTypes[1];
+    return std::get<1>(objectTypes);
 }
 ObjectType Rule::GetPredicate() const
 {
     // return ObjectType::YOU;
-    return objectTypes[2];
-    // return std::get<2>(objectTypes);
+    // return objectTypes[2];
+    return std::get<2>(objectTypes);
 }
 
 

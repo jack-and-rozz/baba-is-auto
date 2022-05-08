@@ -29,15 +29,16 @@ class Rule
     //! \param obj2 A second object.
     //! \param obj3 A third object.
 
-    Rule(TypeSequence);
+    // Rule(TypeSequence types);
+    Rule(ObjectType, ObjectType, ObjectType);
 
     //! Operator overloading for ==.
     //! \param rhs A right side of Rule object.
     //! \return The value that indicates two objects are equal.
     bool operator==(const Rule& rhs) const;
 
-    //std::tuple<ObjectType, ObjectType, ObjectType> objectTypes;
-    TypeSequence objectTypes;
+    std::tuple<ObjectType, ObjectType, ObjectType> objectTypes;
+    //TypeSequence objectTypes;
 
     ObjectType GetSubject() const;
     ObjectType GetOperator() const;

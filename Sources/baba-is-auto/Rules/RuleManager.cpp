@@ -145,52 +145,71 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
 {
 
     /* Notes (letra418):
-       Currently cases where two overlapping texts exist are ignored.
+       - Currently only one text block is considered when overlapping.
     */
 
+    // 1. Find the longest sequence of text blocks from (x, y).
     TypeSequence longest_seq;
     if (direction == RuleDirection::HORIZONTAL){
 	const std::size_t width = map.GetWidth();
     	for (std::size_t xx=x; xx<width; ++xx){
-    	    if (!map.At(xx, y).HasTextType()){
+	    if (map.At(xx, y).HasTextType()){
     	        ObjectType type = map.At(xx, y).GetTextObjects()[0].GetType();
+    	    	longest_seq.emplace_back(type);
+    	    } else {
+    	    	break;
+    	    }
+    	}
+    } else if (direction == RuleDirection::VERTICAL){
+    	const std::size_t height = map.GetHeight();
+    	for (std::size_t yy=y; yy<height; ++yy){
+    	    if (map.At(x, yy).HasTextType()){
+    	        ObjectType type = map.At(x, yy).GetTextObjects()[0].GetType();
     		longest_seq.emplace_back(type);
     	    } else {
     		break;
     	    }
     	}
     }
+    // ==== DEBUG ====
+    // if (longest_seq.size() >=3){
+    // 	std::cout << "longest_seq";
+    // 	for (auto& x: longest_seq)
+    // 	    {
+    // 		std::cout << static_cast<int>(x) << " ";
+    // 	    }
+    // 	std::cout << std::endl;
+    // }
 
+    // 2. Starting from the longest sequence, continue cutting off the last text block and parsing a current sequence till finding a valid rule.
     TypeSequence seq = longest_seq;
-
-    // Starting from the longest sequence, continue slicing a text block and judging whether a current sequence is valid as a rule.
-
-
     while (true) {
-	if (seq.size() < 3) break;
-	Rule rule = Rule(seq);
-	if ((direction == RuleDirection::HORIZONTAL) && rule.IsValid()){
-	    for (std::size_t xx=x; xx<x+seq.size(); ++xx){
-		map.At(xx, y).isRule = true;
-	    }
-	    AddRule(rule);
-	    break;
-	}
+    	if (seq.size() < 3) break;
+    	//Rule rule = Rule(seq);
+    	Rule rule = Rule(seq[0], seq[1], seq[2]);
+    	if ((direction == RuleDirection::HORIZONTAL) && rule.IsValid()){
+    	    for (std::size_t xx=x; xx<x+seq.size(); ++xx){
+    		map.At(xx, y).isRule = true;
+    	    }
+    	    AddRule(rule);
+    	    break;
+    	}
+    	if ((direction == RuleDirection::VERTICAL) && rule.IsValid()){
+    	    for (std::size_t yy=y; yy<y+seq.size(); ++yy){
+    		map.At(x, yy).isRule = true;
+    	    }
+    	    AddRule(rule);
+    	    break;
+    	}
 
-	// std::slice s(0, seq.size() - 1, 1);
-	// seq = seq[s];
-	seq = TypeSequence(seq.begin(), seq.end()-1);
+    	// std::slice s(0, seq.size() - 1, 1);
+    	// seq = seq[s];
+    	seq = TypeSequence(seq.begin(), seq.end()-1);
     }
 
+    return;
 
-    // if ((direction == RuleDirection::VERTICAL) && rule.isValid()){
-    //     for (std::size_t yy=y; yy<y+seq.size(); ++yy){
-    // 	map.At(x, yy).isRule = true;
-    //     }
-    //     AddRule(rule);
-    //     return;
-    // }
-    
+    // // old fastion
     // const std::size_t width = map.GetWidth();
     // const std::size_t height = map.GetHeight();
 
