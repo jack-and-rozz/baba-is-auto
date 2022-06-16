@@ -12,6 +12,8 @@
 #include <baba-is-auto/Rules/Rule.hpp>
 #include <baba-is-auto/Games/Map.hpp>
 
+#include <iostream>
+#include <string>
 #include <vector>
 
 namespace baba_is_auto
@@ -21,9 +23,11 @@ namespace baba_is_auto
 //!
 //! This class manages a list of rules.
 //!
+using Grammar = std::tuple<TypeSequence, ObjectType>;
 class RuleManager
 {
  public:
+    RuleManager();
     //! Adds a rule.
     //! \param rule The rule.
     void AddRule(const Rule& rule);
@@ -54,10 +58,17 @@ class RuleManager
     bool HasType(const Object& obj, ObjectType type) const;
     void ParseRules(Map& map);
     void ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirection direction);
-
+    void BuildRuleTree(TypeSequence seq);
  private:
     std::vector<Rule> m_rules;
+    std::vector<Grammar> m_grammars;
+    TypeSequence GetAllNouns();
+    TypeSequence GetAllGenVerbs();
+    TypeSequence GetAllProperties();
+    TypeSequence GetAllPreModifiers();
+    TypeSequence GetAllPostModifiers();
 };
+    void DbgPrint(std::string title, TypeSequence types);
 }  // namespace baba_is_auto
 
 #endif

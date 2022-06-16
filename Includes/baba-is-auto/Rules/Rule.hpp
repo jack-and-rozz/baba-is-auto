@@ -54,6 +54,21 @@ class Rule
 };
 
 
+class RuleNode
+{
+ public:
+    RuleNode(ObjectType center, 
+	     std::shared_ptr<RuleNode> left,
+	     std::shared_ptr<RuleNode> right);
+    bool operator==(const ObjectType& type) const;
+    ObjectType m_center; 
+ private:
+    std::shared_ptr<RuleNode> m_left;
+    std::shared_ptr<RuleNode> m_right;
+ 
+};
+
+
 }  // namespace baba_is_auto
 
 #endif

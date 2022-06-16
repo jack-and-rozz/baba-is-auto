@@ -83,7 +83,8 @@ class Object
 
 using ObjectContainer = std::vector<Object>;
 using PositionalObject = std::tuple<ObjectId, size_t, size_t>;
-using TypeSequence = std::vector<ObjectType>;
+
+
 // Squareの採用どうするか検討中。。。少なくともGame内で直接操作しないようにしよう
 class Square
 {

@@ -7,6 +7,8 @@
 #ifndef BABA_IS_AUTO_GAME_ENUMS_HPP
 #define BABA_IS_AUTO_GAME_ENUMS_HPP
 
+#include <vector>
+
 namespace baba_is_auto
 {
 //! \brief An enumerator for identifying the object.
@@ -28,7 +30,13 @@ enum class ObjectType
 #define X(a) a,
 #include "IconType.def"
 #undef X
+    GRAMMAR_TYPE,
+#define X(a) a,
+#include "GrammarType.def"
+#undef X
 };
+
+using TypeSequence = std::vector<ObjectType>;
 
 //! Checks \p type is text type.
 //! \param type The object type.
@@ -38,34 +46,22 @@ constexpr bool IsTextType(ObjectType type)
     return type < ObjectType::ICON_TYPE;
 }
 
-//! Checks \p type is noun type.
-//! \param type The object type.
-//! \return The flag that indicates it is noun type.
 constexpr bool IsNounType(ObjectType type)
 {
     return (type > ObjectType::NOUN_TYPE && type < ObjectType::OP_TYPE);
 }
 
-//! Checks \p type is op type.
-//! \param type The object type.
-//! \return The flag that indicates it is op type.
 constexpr bool IsOpType(ObjectType type)
 {
     return (type > ObjectType::OP_TYPE && type < ObjectType::PROPERTY_TYPE);
 }
 
-//! Checks \p type is verb type.
-//! \param type The object type.
-//! \return The flag that indicates it is verb type.
 constexpr bool IsVerbType(ObjectType type)
 {
     return (type == ObjectType::IS || type == ObjectType::HAS ||
             type == ObjectType::MAKE);
 }
 
-//! Checks \p type is property type.
-//! \param type The object type.
-//! \return The flag that indicates it is property type.
 constexpr bool IsPropertyType(ObjectType type)
 {
     return (type > ObjectType::PROPERTY_TYPE && type < ObjectType::ICON_TYPE);
@@ -93,15 +89,20 @@ constexpr bool IsPostModifierType(ObjectType type)
 	    type == ObjectType::FACING);
 }
 
-
-
-//! Checks \p type is property type.
-//! \param type The object type.
-//! \return The flag that indicates it is icon type.
 constexpr bool IsIconType(ObjectType type)
 {
     return (type > ObjectType::ICON_TYPE);
 }
+
+// constexpr int NumNouns()
+// {
+//     return static_cast<int>(ObjectType::OP_TYPE) - static_cast<int>(ObjectType::NOUN_TYPE) - 1;
+// }
+
+// constexpr int NumProperties()
+// {
+//     return static_cast<int>(ObjectType::ICON_TYPE) - static_cast<int>(ObjectType::PROPERTY_TYPE) - 1;
+// }
 
 
 //! Converts icon type to text type.

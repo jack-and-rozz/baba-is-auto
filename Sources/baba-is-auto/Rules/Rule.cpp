@@ -64,38 +64,7 @@ memo: letra418
 - AND
 
 
-
-baba is keke 
--> NP be-verb NP
-
-baba is keke and push
--> NP be-verb NP and Prop
-
-<Rule patterns1>
-Rule = Subj VP
-VP = gen-Verb Obj
-VP = be-Verb Comp
-
-NP = Noun
-NP = NOT NP
-NP = NP AND NP
-
-# Subj = (NOT* PreM)? NP (NOT* PostM NP)?
-
-PreMP = PreM
-PreMP = NOT PreMP
-PostMP = PostM NP
-PostMP = NOT PostMP
-Subj = (PreMP)? NP (PostMP)?
-
-Obj = NP
-Comp = Property
-Comp = NP
-Comp = NOT Comp
-Comp = Comp AND Comp
-
-
-<Rule patterns 2>
+<Grammars>
 Rule = Subj VP
 VP = gen-Verb NP
 VP = be-Verb NP
@@ -119,6 +88,10 @@ Comp = Comp AND Comp
 
 
 <優先度順> # NOT, ANDのルールは変化が無くなるまで　
+- Noun&Property < NOT < AND < Pre-Modifier < Post-Modifier < Verb
+- PreM, PreMPのところ、NPを取り込んでしまっても良いかも
+- パース構造記述後にルールの簡略化を検討
+
 NP = Noun
 Comp = Property
 
@@ -126,7 +99,6 @@ NP = NOT NP
 NP = NP AND NP
 
 Comp = NOT Comp
-Comp = Comp AND Comp
 Comp = NP AND Comp
 Comp = Comp AND NP
 Comp = Comp AND Comp
@@ -140,7 +112,9 @@ VP = gen-Verb NP
 VP = be-Verb Comp
 VP = be-Verb NP
 
-Subj = (PreMP)? NP (PostMP)?
+Subj = PreMP NP PostMP
+Subj = PreMP NP
+Subj = NP PostMP
 Rule = Subj VP
 
 
@@ -266,6 +240,24 @@ ObjectType Rule::GetPredicate() const
     return std::get<2>(objectTypes);
 }
 
+
+
+
+RuleNode::RuleNode(ObjectType center, 
+		   std::shared_ptr<RuleNode> left,
+		   std::shared_ptr<RuleNode> right)
+{
+    m_center = center;
+    m_left = left;
+    m_right = right;
+}
+
+
+
+bool RuleNode::operator==(const ObjectType& type) const
+{
+    return m_center == type;
+}
 
 
 

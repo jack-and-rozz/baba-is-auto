@@ -11,6 +11,265 @@
 
 namespace baba_is_auto
 {
+
+
+void DbgPrint(std::string title, TypeSequence types)
+{
+    std::cout << title << std::endl;
+    for (ObjectType& t: types)
+	{
+	    std::cout << static_cast<int>(t) << " ";
+	}
+    std::cout << std::endl;
+}
+
+RuleManager::RuleManager()
+{
+    /*
+       <Grammars>
+       NP = Noun
+       Comp = Property
+
+       NP = NOT NP
+       NP = NP AND NP
+
+       Comp = NOT Comp
+       Comp = NP AND Comp
+       Comp = Comp AND NP
+       Comp = Comp AND Comp
+
+       PreMP = PreM
+       PreMP = NOT PreMP
+       PostMP = PostM NP
+       PostMP = NOT PostMP
+
+       VP = gen-Verb NP
+       VP = IS Comp
+       VP = IS NP
+
+       Subj = (PreMP)? NP (PostMP)?
+         * Subj = PreMP NP PostMP
+         * Subj = PreMP NP
+         * Subj = NP PostMP
+       Rule = Subj VP
+
+       <memo>
+       - 判定は Noun&Property < NOT < AND < Pre-Modifier <= Post-Modifier < Verb
+       - パースは逆
+       - PreM, PreMPのところ、NPを取り込んでしまっても良いかも
+       - パース構造記述後にルールの簡略化を検討
+       - この構造で、各規則のleft-to-rightの1回切りだとNOTが連続したときに対応出来ない
+
+    */
+
+    // NP = Noun
+    for (auto& x: GetAllNouns()){
+	TypeSequence src{x};
+	ObjectType tgt = ObjectType::NP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // Comp = Property
+    for (auto& x: GetAllProperties()){
+	TypeSequence src{x};
+	ObjectType tgt = ObjectType::Complement;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // NP = NOT NP
+    {
+	TypeSequence src{ObjectType::NOT, ObjectType::NP};
+	ObjectType tgt = ObjectType::NP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // NP = NP AND NP
+    {
+	TypeSequence src{ObjectType::NP, ObjectType::AND, ObjectType::NP};
+	ObjectType tgt = ObjectType::NP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // Comp = NOT Comp
+    {
+	TypeSequence src{ObjectType::NOT, ObjectType::Complement};
+	ObjectType tgt = ObjectType::Complement;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // Comp = NP AND Comp
+    {
+	TypeSequence src{ObjectType::NP, ObjectType::AND, ObjectType::Complement};
+	ObjectType tgt = ObjectType::Complement;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // Comp = Comp AND NP
+    {
+	TypeSequence src{ObjectType::Complement, ObjectType::AND, ObjectType::NP};
+	ObjectType tgt = ObjectType::Complement;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // Comp = Comp AND Comp
+    {
+	TypeSequence src{ObjectType::Complement, ObjectType::AND, ObjectType::Complement};
+	ObjectType tgt = ObjectType::Complement;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // PreMP = PreM
+    for (auto& x: GetAllPreModifiers()){
+	TypeSequence src{x};
+	ObjectType tgt = ObjectType::PreMP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // PreMP = NOT PreMP
+    {
+	TypeSequence src{ObjectType::NOT, ObjectType::PreMP};
+	ObjectType tgt = ObjectType::PreMP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // PostMP = PostM NP
+    for (auto& x: GetAllPostModifiers()){
+	TypeSequence src{x, ObjectType::NP};
+	ObjectType tgt = ObjectType::PostMP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // PostMP = NOT PostMP
+    {
+	TypeSequence src{ObjectType::NOT, ObjectType::PostMP};
+	ObjectType tgt = ObjectType::PostMP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // VP = gen-Verb NP
+    for (auto& x: GetAllGenVerbs()){
+	TypeSequence src{x, ObjectType::NP};
+	ObjectType tgt = ObjectType::VP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // VP = IS Comp
+    {
+	TypeSequence src{ObjectType::IS, ObjectType::Complement};
+	ObjectType tgt = ObjectType::VP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // VP = IS NP
+    {
+	TypeSequence src{ObjectType::IS, ObjectType::NP};
+	ObjectType tgt = ObjectType::VP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // Subj = PreMP NP PostMP
+    {
+	TypeSequence src{ObjectType::PreMP, ObjectType::NP, ObjectType::PostMP};
+	ObjectType tgt = ObjectType::Subj;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // Subj = PreMP NP
+    {
+	TypeSequence src{ObjectType::PreMP, ObjectType::NP};
+	ObjectType tgt = ObjectType::Subj;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // Subj = NP PostMP
+    {
+	TypeSequence src{ObjectType::NP, ObjectType::PostMP};
+	ObjectType tgt = ObjectType::Subj;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // Rule = Subj VP
+    {
+	TypeSequence src{ObjectType::Subj, ObjectType::VP};
+	ObjectType tgt = ObjectType::Rule;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // <debug>
+    // std::cout << "Grammars" << std::endl;
+    // for (auto& g: m_grammars){
+    // 	TypeSequence v = std::get<0>(g);
+    // 	ObjectType tgt = std::get<1>(g);
+    // 	std::cout << "[ ";
+    // 	for (auto& src: v){
+    // 	    std::cout << static_cast<int>(src) << " ";
+    // 	}
+    // 	std::cout << "] ->" << static_cast<int>(tgt) ;
+    // 	std::cout << std::endl;
+    // }
+
+}
+
+void PrintNodeList(std::vector<RuleNode>& nodes){
+    std::cout << "PrintNodeList" << std::endl;
+    for (auto& node: nodes){
+	std::cout << static_cast<int>(node.m_center) << " ";
+    }
+    std::cout << std::endl;
+}
+
+
+void RuleManager::BuildRuleTree(TypeSequence seq){
+    /* e.g., 
+       not lonely baba and keke near wall is not push and stop
+       -> not PreM NP and NP PostM NP is not Comp and Comp
+       -> not PreM NP PostM NP is not Comp and Comp
+       -> not PreM NP PostM NP is Comp
+       -> PreMP NP PostMP is Comp
+       -> PreMP NP PostMP VP
+       -> Subj VP
+       -> Rule
+     */
+
+    std::vector<RuleNode> nodes;
+    std::vector<RuleNode> new_nodes;
+    std::vector<RuleNode> sliced_nodes;
+
+    // Put all words (leaves) to a node list.
+    for (auto& t: seq){
+	std::shared_ptr<RuleNode> left;
+	std::shared_ptr<RuleNode> right;
+    	RuleNode node = RuleNode(t, left, right);
+    	nodes.emplace_back(node);
+    }
+
+    // Apply a grammar from left to right and update the node list.
+    std::cout << "<Node parsing>" << std::endl;
+    for (auto& g: m_grammars){
+	PrintNodeList(nodes);
+    	TypeSequence src = std::get<0>(g);
+    	ObjectType tgt = std::get<1>(g);
+	for (std::size_t i = 0; i < nodes.size() - src.size(); ++i){
+	    sliced_nodes = std::vector<RuleNode>(nodes.begin() + i, 
+						 nodes.begin() + i + src.size());
+	    if (sliced_nodes == src){
+		;;
+	    }
+	}
+
+
+	// for (auto& s: src){
+	//     std::cout << static_cast<int>(s) << " ";
+	// }
+	// std::cout << " -> ";
+	// std::cout << static_cast<int>(tgt) << std::endl;
+    }
+
+    // TypeSequence nouns = GetAllNouns();
+    // std::cout << "All nouns" << std::endl;
+    // for (auto& n: nouns)
+    // 	{
+    // 	    std::cout << static_cast<int>(n) << " " ;
+    // 	}
+    // std::cout << std::endl;
+
+
+    return;
+}
+
+
 void RuleManager::AddRule(const Rule& rule)
 {
     m_rules.emplace_back(rule);
@@ -59,29 +318,6 @@ std::size_t RuleManager::GetNumRules() const
 {
     return m_rules.size();
 }
-
-
-// std::vector<Rule> RuleManager::GetRules(std::function<bool(Rule)> fn) const
-// {
-//     std::vector<Rule> ret;
-//     for (auto itr = std::find_if(m_rules.begin(), m_rules.end(), fn);
-// 	 itr != m_rules.end();
-// 	 itr = std::find_if(++itr, m_rules.end(), fn))
-// 	{
-//             ret.emplace_back(itr);
-// 	}
-//     return ret;
-
-    // for (auto& itr = std::find_if)
-    // {
-    //     if (fn(rule))
-    //     {
-    //         ret.emplace_back(rule);
-    //     }
-    // }
-
-    // return ret;
-// }
 
 
 bool RuleManager::HasType(const Object& obj, ObjectType tgtType) const {
@@ -136,8 +372,6 @@ void RuleManager::ParseRules(Map& map)
             ParseRule(map, x, y, RuleDirection::VERTICAL);
         }
     }
-
-    // m_playerIcons = m_ruleManager.GetSubjectsByPredicate(ObjectType::YOU);
 }
 
 
@@ -187,6 +421,8 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
     	if (seq.size() < 3) break;
     	//Rule rule = Rule(seq);
     	Rule rule = Rule(seq[0], seq[1], seq[2]);
+	BuildRuleTree(seq); // debug for new parsing system
+
     	if ((direction == RuleDirection::HORIZONTAL) && rule.IsValid()){
     	    for (std::size_t xx=x; xx<x+seq.size(); ++xx){
     		map.At(xx, y).isRule = true;
@@ -208,58 +444,47 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
     }
 
     return;
-
-    // // old fastion
-    // const std::size_t width = map.GetWidth();
-    // const std::size_t height = map.GetHeight();
-
-    // if (direction == RuleDirection::HORIZONTAL)
-    // {
-    //     if (x + 2 >= width)
-    //     {
-    //         return;
-    //     }
-
-    //     if (map.At(x, y).HasNounType() && map.At(x + 1, y).HasVerbType() &&
-    //         (map.At(x + 2, y).HasNounType() ||
-    //          map.At(x + 2, y).HasPropertyType()))
-    // 	{
-    // 	    auto type1 = map.At(x, y).GetTextObjects()[0].GetType();
-    // 	    auto type2 = map.At(x + 1, y).GetTextObjects()[0].GetType();
-    // 	    auto type3 = map.At(x + 2, y).GetTextObjects()[0].GetType();
-
-    // 	    Rule newRule = Rule(type1, type2, type3);
-    // 	    AddRule(newRule);
-
-    // 	    map.At(x, y).isRule = true;
-    // 	    map.At(x + 1, y).isRule = true;
-    // 	    map.At(x + 2, y).isRule = true;
-    // 	}
-    // }
-    // else if (direction == RuleDirection::VERTICAL)
-    // {
-    //     if (y + 2 >= height)
-    //     {
-    //         return;
-    //     }
-
-    //     if (map.At(x, y).HasNounType() && map.At(x, y + 1).HasVerbType() &&
-    //         (map.At(x, y + 2).HasNounType() ||
-    //          map.At(x, y + 2).HasPropertyType()))
-    // 	{
-    // 	    auto type1 = map.At(x, y).GetTextObjects()[0].GetType();
-    // 	    auto type2 = map.At(x, y + 1).GetTextObjects()[0].GetType();
-    // 	    auto type3 = map.At(x, y + 2).GetTextObjects()[0].GetType();
-
-    // 	    Rule newRule = Rule(type1, type2, type3);
-    // 	    AddRule(newRule);
-
-    //         map.At(x, y).isRule = true;
-    //         map.At(x, y + 1).isRule = true;
-    //         map.At(x, y + 2).isRule = true;
-    // 	}
-    // }
 }
+
+TypeSequence RuleManager::GetAllNouns()
+{
+    TypeSequence s;
+    int begin = static_cast<int>(ObjectType::NOUN_TYPE) + 1;
+    int end = static_cast<int>(ObjectType::OP_TYPE);
+    for (int i=begin; i<end; ++i){
+	s.emplace_back(static_cast<ObjectType>(i));
+    }
+    return s;
+}
+TypeSequence RuleManager::GetAllProperties()
+{
+    TypeSequence s;
+    int begin = static_cast<int>(ObjectType::PROPERTY_TYPE) + 1;
+    int end = static_cast<int>(ObjectType::ICON_TYPE);
+    for (int i=begin; i<end; ++i){
+	s.emplace_back(static_cast<ObjectType>(i));
+    }
+    return s;
+}
+
+TypeSequence RuleManager::GetAllGenVerbs()
+{
+    TypeSequence s{ObjectType::HAS, ObjectType::MAKE};
+    return s;
+}
+
+TypeSequence RuleManager::GetAllPreModifiers()
+{
+    TypeSequence s{ObjectType::LONELY};
+    return s;
+}
+TypeSequence RuleManager::GetAllPostModifiers()
+{
+    TypeSequence s{ObjectType::ON, ObjectType::NEAR, ObjectType::FACING};
+    return s;
+}
+
+
 
 
 }  // namespace baba_is_auto
