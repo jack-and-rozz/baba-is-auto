@@ -132,80 +132,10 @@ Rule = Subj VP
 namespace baba_is_auto
 {
 
-// Rule::Rule(TypeSequence types)
-// {
-//     // ParseTree(types);
-//     objectTypes = types;
-// }
-
 Rule::Rule(ObjectType type1, ObjectType type2, ObjectType type3)
 {
     objectTypes = { type1, type2, type3 };
 }
-
-
-// void Rule::ParseTree(TypeSequence types){
-//     m_is_valid = true;
-
-//     if (types.size() == 1){
-// 	m_left.reset(nullptr);
-// 	m_right.reset(nullptr);
-// 	m_center = std::get<0>(types);
-
-// 	// a span with the length == 1 must be a noun or a property.
-// 	if (IsVerbType(m_center) ||  IsPropertyType(m_center)){
-// 	    m_is_valid = false;
-// 	}
-// 	return;
-//     }
-
-//     // Center priority: verb > post-modifier > pre-modifier > AND > NOT > noun&property
-
-
-//     auto itr = std::find_if(types.begin(), types.end(), IsVerbType);
-//     if (itr == types.end()) {
-// 	itr = std::find_if(types.begin(), types.end(), IsPostModifierType);
-//     }
-//     if (itr == types.end()) {
-// 	itr = std::find_if(types.begin(), types.end(), IsPreModifierType);
-//     }
-//     if (itr == types.end()) {
-// 	itr = std::find_if(types.begin(), types.end(), IsAND);
-//     }
-//     if (itr == types.end()) {
-// 	itr = std::find_if(types.begin(), types.end(), IsNOT);
-//     }
-
-
-//     if (itr == types.end()) { // Noun or Property
-// 	m_left.reset(nullptr);
-// 	m_right.reset(nullptr);
-// 	m_center = std::get<0>(types);
-// 	if (types.size() != 1){
-// 	    // Invalid: noun or property must be a single leaf.
-// 	    m_is_valid = false;
-// 	}
-// 	return;
-//     }
-
-
-//     const int center_idx = std::distance(types.begin(), itr);
-//     std::slice s1(0, center_idx, 1);
-//     std::slice s2(center_idx + 1, types.size() - 1 - center_idx, 1);
-
-//     if (center_idx == 0) {
-// 	m_left.reset(nullptr);
-//     } else {
-// 	m_left.reset(Rule(types[s1]));
-//     }
-
-//     if (center_idx == types.size() - 1) {
-// 	m_right.reset(nullptr);
-//     } else {
-// 	m_right.reset(Rule(types[s2]));
-//     }
-
-// }
 
 
 bool Rule::IsValid() const {
@@ -243,20 +173,43 @@ ObjectType Rule::GetPredicate() const
 
 
 
-RuleNode::RuleNode(ObjectType center, 
-		   std::shared_ptr<RuleNode> left,
-		   std::shared_ptr<RuleNode> right)
+RuleNode::RuleNode(ObjectType center)
 {
     m_center = center;
-    m_left = left;
-    m_right = right;
 }
 
-
+RuleNode::RuleNode(ObjectType center, RuleNode left, RuleNode right)
+{
+    m_center = center;
+    m_left = std::make_shared<RuleNode>(left);
+    m_right = std::make_shared<RuleNode>(right);
+}
 
 bool RuleNode::operator==(const ObjectType& type) const
 {
     return m_center == type;
+}
+
+
+bool RuleNode::HasTargetType(const ObjectType& type) const
+{
+    bool left_result = false;
+    bool right_result = false;
+
+    if (m_right.get() != nullptr){
+	right_result = m_right->HasTargetType(type);
+    }
+
+    // check only whether the right node (=VP) contains type.
+    if (m_left.get() != nullptr && m_center != ObjectType::Rule){
+	left_result = m_left->HasTargetType(type);
+    }
+    return left_result || right_result;
+}
+
+bool RuleNode::SatisfyCondition(const Object& obj) const
+{
+    return false;
 }
 
 

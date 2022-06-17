@@ -27,6 +27,7 @@ RuleManager::RuleManager()
 {
     /*
        <Grammars>
+       NOT = NOT NOT
        NP = Noun
        Comp = Property
 
@@ -38,19 +39,22 @@ RuleManager::RuleManager()
        Comp = Comp AND NP
        Comp = Comp AND Comp
 
-       PreMP = PreM
-       PreMP = NOT PreMP
+       PreM = Pre-Modifier (LONELY)
+       PreM = NOT PreM
+       PreMP = PreM NP
+       PostM = Post-Modifier (ON, NEAR, FACING)
+       PostM = NOT PostM
        PostMP = PostM NP
-       PostMP = NOT PostMP
 
        VP = gen-Verb NP
        VP = IS Comp
        VP = IS NP
 
-       Subj = (PreMP)? NP (PostMP)?
-         * Subj = PreMP NP PostMP
-         * Subj = PreMP NP
-         * Subj = NP PostMP
+       Subj = PreMP PostMP
+       Subj = NP PostMP
+       Subj = PreMP
+       Subj = NP
+
        Rule = Subj VP
 
        <memo>
@@ -61,6 +65,12 @@ RuleManager::RuleManager()
        - この構造で、各規則のleft-to-rightの1回切りだとNOTが連続したときに対応出来ない
 
     */
+    // NOT = NOT NOT
+    {
+	TypeSequence src{ObjectType::NOT, ObjectType::NOT};
+	ObjectType tgt = ObjectType::NOT;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
 
     // NP = Noun
     for (auto& x: GetAllNouns()){
@@ -81,6 +91,7 @@ RuleManager::RuleManager()
 	ObjectType tgt = ObjectType::NP;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
+
     // NP = NP AND NP
     {
 	TypeSequence src{ObjectType::NP, ObjectType::AND, ObjectType::NP};
@@ -113,30 +124,44 @@ RuleManager::RuleManager()
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
 
-    // PreMP = PreM
+    // PreM = Pre-Modifier
     for (auto& x: GetAllPreModifiers()){
 	TypeSequence src{x};
+	ObjectType tgt = ObjectType::PreM;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // PreM = NOT PreM
+    {
+	TypeSequence src{ObjectType::NOT, ObjectType::PreM};
+	ObjectType tgt = ObjectType::PreM;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // PreMP = PreM NP
+    {
+	TypeSequence src{ObjectType::PreM, ObjectType::NP};
 	ObjectType tgt = ObjectType::PreMP;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
 
-    // PreMP = NOT PreMP
+    // PostM = Post-Modifier
+    for (auto& x: GetAllPostModifiers()){
+	TypeSequence src{x};
+	ObjectType tgt = ObjectType::PostM;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // PostM = NOT PostM
     {
-	TypeSequence src{ObjectType::NOT, ObjectType::PreMP};
-	ObjectType tgt = ObjectType::PreMP;
+	TypeSequence src{ObjectType::NOT, ObjectType::PostM};
+	ObjectType tgt = ObjectType::PostM;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
 
     // PostMP = PostM NP
-    for (auto& x: GetAllPostModifiers()){
-	TypeSequence src{x, ObjectType::NP};
-	ObjectType tgt = ObjectType::PostMP;
-	m_grammars.emplace_back(std::make_tuple(src, tgt));
-    }
-
-    // PostMP = NOT PostMP
     {
-	TypeSequence src{ObjectType::NOT, ObjectType::PostMP};
+	TypeSequence src{ObjectType::PostM, ObjectType::NP};
 	ObjectType tgt = ObjectType::PostMP;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
@@ -161,21 +186,27 @@ RuleManager::RuleManager()
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
 
-    // Subj = PreMP NP PostMP
+    // Subj = PreMP PostMP
     {
-	TypeSequence src{ObjectType::PreMP, ObjectType::NP, ObjectType::PostMP};
-	ObjectType tgt = ObjectType::Subj;
-	m_grammars.emplace_back(std::make_tuple(src, tgt));
-    }
-    // Subj = PreMP NP
-    {
-	TypeSequence src{ObjectType::PreMP, ObjectType::NP};
+	TypeSequence src{ObjectType::PreMP, ObjectType::PostMP};
 	ObjectType tgt = ObjectType::Subj;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
     // Subj = NP PostMP
     {
 	TypeSequence src{ObjectType::NP, ObjectType::PostMP};
+	ObjectType tgt = ObjectType::Subj;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // Subj = PreMP
+    {
+	TypeSequence src{ObjectType::PreMP};
+	ObjectType tgt = ObjectType::Subj;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // Subj = NP
+    {
+	TypeSequence src{ObjectType::NP};
 	ObjectType tgt = ObjectType::Subj;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
@@ -202,14 +233,41 @@ RuleManager::RuleManager()
 
 }
 
-void PrintNodeList(std::vector<RuleNode>& nodes){
-    std::cout << "PrintNodeList" << std::endl;
+void PrintNodeList(int i, std::vector<RuleNode>& nodes){
+    std::cout << "PrintNodeList: " << i <<  std::endl;
     for (auto& node: nodes){
 	std::cout << static_cast<int>(node.m_center) << " ";
     }
     std::cout << std::endl;
 }
 
+void PrintGrammar(TypeSequence src, ObjectType tgt)
+{
+    for (auto& s: src){
+	std::cout << static_cast<int>(s) << " ";
+    }
+    std::cout << " -> ";
+    std::cout << static_cast<int>(tgt) << std::endl;
+}
+
+std::vector<RuleNode> UpdateNodes(std::vector<RuleNode> nodes, 
+				  RuleNode new_node,
+				  std::size_t cut_start_idx, 
+				  std::size_t cut_end_idx)
+{
+    std::vector<RuleNode> new_nodes;
+    if (cut_start_idx > 0){
+	std::copy(nodes.begin(), nodes.begin() + cut_start_idx,
+		  std::back_inserter(new_nodes));
+    }
+    new_nodes.emplace_back(new_node);
+    if (nodes.begin() + cut_end_idx < nodes.end()){
+	std::copy(nodes.begin() + cut_end_idx, nodes.end(),
+		  std::back_inserter(new_nodes));
+    }
+    return new_nodes;
+
+}
 
 void RuleManager::BuildRuleTree(TypeSequence seq){
     /* e.g., 
@@ -224,38 +282,66 @@ void RuleManager::BuildRuleTree(TypeSequence seq){
      */
 
     std::vector<RuleNode> nodes;
-    std::vector<RuleNode> new_nodes;
-    std::vector<RuleNode> sliced_nodes;
-
+    std::vector<RuleNode> sliced;
     // Put all words (leaves) to a node list.
     for (auto& t: seq){
-	std::shared_ptr<RuleNode> left;
-	std::shared_ptr<RuleNode> right;
-    	RuleNode node = RuleNode(t, left, right);
+    	RuleNode node = RuleNode(t);
     	nodes.emplace_back(node);
     }
 
     // Apply a grammar from left to right and update the node list.
     std::cout << "<Node parsing>" << std::endl;
     for (auto& g: m_grammars){
-	PrintNodeList(nodes);
     	TypeSequence src = std::get<0>(g);
     	ObjectType tgt = std::get<1>(g);
-	for (std::size_t i = 0; i < nodes.size() - src.size(); ++i){
-	    sliced_nodes = std::vector<RuleNode>(nodes.begin() + i, 
-						 nodes.begin() + i + src.size());
-	    if (sliced_nodes == src){
-		;;
+	std::size_t i = 0;
+	std::size_t left_idx = 0;
+	std::size_t right_idx = 0;
+
+	//while (i <= nodes.size() - src.size()){
+	while (nodes.begin() + i + src.size() <= nodes.end()){
+	    sliced = std::vector<RuleNode>(nodes.begin() + i, nodes.begin() + i + src.size());
+	    // vector::operator== は定義済みのRuleNode::operator==を使ってくれない？
+	    //if (sliced == src){ 
+
+
+	    if (std::equal(sliced.cbegin(), sliced.cend(), src.cbegin())){
+		std::cout << "=============" << std::endl;
+		std::cout << "<Grammar>" << std::endl;
+		PrintGrammar(src, tgt);
+		std::cout << "<Current Nodes>" << std::endl;
+		PrintNodeList(i, nodes);
+
+		if (src.size() == 2){
+		    left_idx = 0;
+		    right_idx = 1;
+		} else if (src.size() == 3){
+		    // sliced.at(1) is 'AND'.
+		    left_idx = 0;
+		    right_idx = 2;
+		} else if (src.size() >= 4) {
+		    throw "Exception : the length of src in a grammar is 1, 2, or 3.\n";
+		}
+		if (src.size() == 1){
+		    RuleNode new_node = RuleNode(tgt);
+		    nodes = UpdateNodes(nodes, new_node, i, i+src.size());
+		} else {
+		    RuleNode new_node = RuleNode(tgt, sliced.at(left_idx), sliced.at(right_idx));
+		    nodes = UpdateNodes(nodes, new_node, i, i+src.size());
+		}
+		std::cout << "<Next Nodes>" << std::endl; 
+		PrintNodeList(i, nodes);
+
+	    } else {
+		i++;
 	    }
 	}
-
-
-	// for (auto& s: src){
-	//     std::cout << static_cast<int>(s) << " ";
-	// }
-	// std::cout << " -> ";
-	// std::cout << static_cast<int>(tgt) << std::endl;
     }
+    // Finally, ObjectType::Rule only remains on the top of a tree if it is valid.
+    if (nodes.size() == 1 && nodes.at(0) == ObjectType::Rule){
+	;;
+    }
+    
 
     // TypeSequence nouns = GetAllNouns();
     // std::cout << "All nouns" << std::endl;
@@ -338,6 +424,9 @@ bool RuleManager::HasType(const Object& obj, ObjectType tgtType) const {
 		return true;
 	    }
 	}
+	// rule.HasTargetType(tgtType);
+	// rule.SatisfyCondition(obj);
+
 	// else if (IsVerbType(tgtType)) {
 	//     if ((rule.GetSubject() == objType) &&
 	// 	(rule.GetOperator() == tgtType)){
@@ -420,6 +509,7 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
     while (true) {
     	if (seq.size() < 3) break;
     	//Rule rule = Rule(seq);
+	std::cout << "(x, y, dir) = [" << x << ", " << y << ", " << static_cast<int>(direction) << "]" << std::endl;
     	Rule rule = Rule(seq[0], seq[1], seq[2]);
 	BuildRuleTree(seq); // debug for new parsing system
 

@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 namespace baba_is_auto
 {

@@ -57,10 +57,14 @@ class Rule
 class RuleNode
 {
  public:
-    RuleNode(ObjectType center, 
-	     std::shared_ptr<RuleNode> left,
-	     std::shared_ptr<RuleNode> right);
+    RuleNode(ObjectType center);
+    RuleNode(ObjectType center, RuleNode left, RuleNode right);
     bool operator==(const ObjectType& type) const;
+    bool HasTargetType(const ObjectType& type) const;
+    bool SatisfyCondition(const Object& obj) const;
+    // rule.HasTargetType(tgtType);
+    // rule.SatisfyCondition(obj);
+
     ObjectType m_center; 
  private:
     std::shared_ptr<RuleNode> m_left;
