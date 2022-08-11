@@ -60,10 +60,6 @@ RuleManager::RuleManager()
        <memo>
        - 判定は Noun&Property < NOT < AND < Pre-Modifier <= Post-Modifier < Verb
        - パースは逆
-       - PreM, PreMPのところ、NPを取り込んでしまっても良いかも
-       - パース構造記述後にルールの簡略化を検討
-       - この構造で、各規則のleft-to-rightの1回切りだとNOTが連続したときに対応出来ない
-
     */
     // NOT = NOT NOT
     {
@@ -236,7 +232,7 @@ RuleManager::RuleManager()
 void PrintNodeList(int i, std::vector<RuleNode>& nodes){
     std::cout << "PrintNodeList: " << i <<  std::endl;
     for (auto& node: nodes){
-	std::cout << static_cast<int>(node.m_center) << " ";
+	std::cout << static_cast<int>(node.m_top) << " ";
     }
     std::cout << std::endl;
 }
@@ -275,8 +271,8 @@ void RuleManager::BuildRuleTree(TypeSequence seq){
        -> not PreM NP and NP PostM NP is not Comp and Comp
        -> not PreM NP PostM NP is not Comp and Comp
        -> not PreM NP PostM NP is Comp
-       -> PreMP NP PostMP is Comp
-       -> PreMP NP PostMP VP
+       -> PreMP PostMP is Comp
+       -> PreMP PostMP VP
        -> Subj VP
        -> Rule
      */
@@ -301,18 +297,17 @@ void RuleManager::BuildRuleTree(TypeSequence seq){
 	//while (i <= nodes.size() - src.size()){
 	while (nodes.begin() + i + src.size() <= nodes.end()){
 	    sliced = std::vector<RuleNode>(nodes.begin() + i, nodes.begin() + i + src.size());
-	    // vector::operator== は定義済みのRuleNode::operator==を使ってくれない？
-	    //if (sliced == src){ 
-
-
+	    // vector::operator== は内部比較で定義済みのRuleNode::operator==を使ってくれない？
+	    //if (sliced == src){
 	    if (std::equal(sliced.cbegin(), sliced.cend(), src.cbegin())){
 		std::cout << "=============" << std::endl;
 		std::cout << "<Grammar>" << std::endl;
 		PrintGrammar(src, tgt);
 		std::cout << "<Current Nodes>" << std::endl;
 		PrintNodeList(i, nodes);
-
-		if (src.size() == 2){
+		if (src.size() == 1){
+		    left_idx = 0;
+		} else if (src.size() == 2){
 		    left_idx = 0;
 		    right_idx = 1;
 		} else if (src.size() == 3){
@@ -323,7 +318,7 @@ void RuleManager::BuildRuleTree(TypeSequence seq){
 		    throw "Exception : the length of src in a grammar is 1, 2, or 3.\n";
 		}
 		if (src.size() == 1){
-		    RuleNode new_node = RuleNode(tgt);
+		    RuleNode new_node = RuleNode(tgt, sliced.at(left_idx));
 		    nodes = UpdateNodes(nodes, new_node, i, i+src.size());
 		} else {
 		    RuleNode new_node = RuleNode(tgt, sliced.at(left_idx), sliced.at(right_idx));
@@ -331,7 +326,6 @@ void RuleManager::BuildRuleTree(TypeSequence seq){
 		}
 		std::cout << "<Next Nodes>" << std::endl; 
 		PrintNodeList(i, nodes);
-
 	    } else {
 		i++;
 	    }
@@ -406,7 +400,7 @@ std::size_t RuleManager::GetNumRules() const
 }
 
 
-bool RuleManager::HasType(const Object& obj, ObjectType tgtType) const {
+bool RuleManager::HasType(const Object& obj, const Map& map, ObjectType tgtType) const {
     auto objType = obj.GetType();
     objType = IsIconType(objType) ? ConvertIconToText(objType) : ObjectType::TEXT;
 
@@ -425,7 +419,7 @@ bool RuleManager::HasType(const Object& obj, ObjectType tgtType) const {
 	    }
 	}
 	// rule.HasTargetType(tgtType);
-	// rule.SatisfyCondition(obj);
+	// rule.SatisfyCondition(obj, map);
 
 	// else if (IsVerbType(tgtType)) {
 	//     if ((rule.GetSubject() == objType) &&

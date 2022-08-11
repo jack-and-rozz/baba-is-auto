@@ -201,11 +201,11 @@ bool Game::CanMove(std::size_t x, std::size_t y, Direction dir,
 	  - TODO: implement SHUT, OPEN, PULL, WEAK, SWAP, FLOAT
 	*/
 
-	if (m_ruleManager.HasType(obj, ObjectType::PUSH) &&
+	if (m_ruleManager.HasType(obj, m_map, ObjectType::PUSH) &&
 	    !CanMove(_x, _y, dir, obj)){
 	    return false;
 	}
-	else if (m_ruleManager.HasType(obj, ObjectType::STOP)){
+	else if (m_ruleManager.HasType(obj, m_map, ObjectType::STOP)){
 	    return false;
 	}
     }
@@ -353,6 +353,11 @@ void Game::ProcessMOVE()
 
 void Game::ProcessIS()
 {
+    /*
+      memo:
+      - (todo) 変化する際に前のobjectを残さないとA is B, A is Cに対応できない
+
+     */
     auto is_noun_rules = m_ruleManager.GetRules(ObjectType::IS);
 
     for (auto& rule: is_noun_rules){
@@ -432,7 +437,7 @@ bool Game::ProcessHOTAndMELT()
 	auto& meltObj = m_map.GetObject(melt_id, x, y);
 
 	for (auto& obj : m_map.GetObjects(x, y)){
-	    if (m_ruleManager.HasType(obj, ObjectType::HOT)){
+	    if (m_ruleManager.HasType(obj, m_map, ObjectType::HOT)){
 		meltObj.SetRemoveFlag(true);
 		happened = true;
 	    }
@@ -450,7 +455,7 @@ bool Game::ProcessDEFEAT()
 	auto& youObj = m_map.GetObject(you_id, x, y);
 
 	for (auto& obj : m_map.GetObjects(x, y)){
-	    if (m_ruleManager.HasType(obj, ObjectType::DEFEAT)){
+	    if (m_ruleManager.HasType(obj, m_map, ObjectType::DEFEAT)){
 		youObj.SetRemoveFlag(true);
 		happened = true;
 	    }
@@ -489,8 +494,8 @@ void Game::CheckPlayState() // todo
     }
     for (auto& [_, x, y] : obj_ids){
 	auto& objs = m_map.GetObjects(x, y);
-	for (auto & objOnPlayer: objs){
-	    if (m_ruleManager.HasType(objOnPlayer, ObjectType::WIN)){
+	for (auto & obj: objs){
+	    if (m_ruleManager.HasType(obj, m_map, ObjectType::WIN)){
 		m_playState = PlayState::WON;
 	    }
 	}
@@ -511,7 +516,7 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByType(ObjectType o
 		if (IsIconType(objtype) && (itr->GetType() == objtype)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
 		    res.emplace_back(t);
-		} else if (IsPropertyType(objtype) && m_ruleManager.HasType(*itr, objtype)){
+		} else if (IsPropertyType(objtype) && m_ruleManager.HasType(*itr, m_map, objtype)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
 		    // std::tuple t = std::tie(itr->GetId(), x, y);
 		    res.emplace_back(t);
@@ -531,7 +536,7 @@ void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
     bool continue_pushing = false;
 
     for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
-	if (m_ruleManager.HasType(*itr, ObjectType::PUSH)){
+	if (m_ruleManager.HasType(*itr, m_map, ObjectType::PUSH)){
 	    // Skipped if an object was already pushed from another direction (e.g., MOVE objects can push an object from two directions).
 	    if (itr->GetMoveFlag() == Direction::NONE){
 		if (CanMove(x, y, dir, *itr)){

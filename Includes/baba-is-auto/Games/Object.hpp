@@ -119,16 +119,7 @@ class Square
     //! Checks the square has specific type.
     //! \param type An object type to check.
     //! \return The flag indicates that the object has specific type.
-    /* 
-       Note (letra418):
-       HasType does not support types induced by rules.
-       e.g., Even if there is a rule "WATER IS SINK" and ICON_WATER is at (x, y),
-       Map.At(x, y).HasType(ObjectType::SINK) returns false.
-       In contrast, 
-       RuleManager.HasType(object, ObjectType::SINK)
-       can return true.
-     */ 
-    bool HasType(ObjectType type) const;
+
     bool HasNounType() const;
     bool HasVerbType() const;
     bool HasPropertyType() const;

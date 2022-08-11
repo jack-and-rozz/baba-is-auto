@@ -67,6 +67,16 @@ constexpr bool IsPropertyType(ObjectType type)
     return (type > ObjectType::PROPERTY_TYPE && type < ObjectType::ICON_TYPE);
 }
 
+constexpr bool IsIconType(ObjectType type)
+{
+    return (type > ObjectType::ICON_TYPE && type < ObjectType::GRAMMAR_TYPE);
+}
+
+constexpr bool IsGrammarType(ObjectType type)
+{
+    return (type > ObjectType::GRAMMAR_TYPE);
+}
+
 constexpr bool IsAND(ObjectType type)
 {
     return (type == ObjectType::AND);
@@ -89,10 +99,6 @@ constexpr bool IsPostModifierType(ObjectType type)
 	    type == ObjectType::FACING);
 }
 
-constexpr bool IsIconType(ObjectType type)
-{
-    return (type > ObjectType::ICON_TYPE);
-}
 
 // constexpr int NumNouns()
 // {

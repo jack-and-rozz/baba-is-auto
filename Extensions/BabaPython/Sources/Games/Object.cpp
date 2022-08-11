@@ -33,7 +33,6 @@ void AddObject(pybind11::module& m)
 	     [](const Square sq){
 		 return sq.GetObjects();
 	     })
-        .def("HasType", &Square::HasType)
         .def("HasTextType", &Square::HasTextType)
         .def("HasNounType", &Square::HasNounType)
         .def("HasVerbType", &Square::HasVerbType)

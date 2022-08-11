@@ -56,7 +56,7 @@ class RuleManager
     //! \param property The property to check.
     //! \return The flag indicates that an object has specific property.
 
-    bool HasType(const Object& obj, ObjectType type) const;
+    bool HasType(const Object& obj, const Map& map, ObjectType type) const;
     void ParseRules(Map& map);
     void ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirection direction);
     void BuildRuleTree(TypeSequence seq);

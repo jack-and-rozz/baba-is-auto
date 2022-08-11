@@ -8,6 +8,7 @@
 #define BABA_IS_AUTO_RULE_HPP
 
 #include <baba-is-auto/Games/Object.hpp>
+#include <baba-is-auto/Games/Map.hpp>
 
 #include <tuple>
 #include <valarray>
@@ -48,7 +49,7 @@ class Rule
     //Rule* m_left = null;
     // std::unique_ptr<Rule> m_left;
     // std::unique_ptr<Rule> m_right;
-    // ObjectType m_center;
+    // ObjectType m_top;
     // bool m_is_valid;
     // void ParseTree(TypeSequence);
 };
@@ -57,15 +58,17 @@ class Rule
 class RuleNode
 {
  public:
-    RuleNode(ObjectType center);
-    RuleNode(ObjectType center, RuleNode left, RuleNode right);
+    // RuleNode(ObjectType top);
+    RuleNode(ObjectType top);
+    RuleNode(ObjectType top, RuleNode left);
+    RuleNode(ObjectType top, RuleNode left, RuleNode right);
     bool operator==(const ObjectType& type) const;
     bool HasTargetType(const ObjectType& type) const;
-    bool SatisfyCondition(const Object& obj) const;
+    bool SatisfyCondition(const Object& obj, const Map& map) const;
     // rule.HasTargetType(tgtType);
     // rule.SatisfyCondition(obj);
 
-    ObjectType m_center; 
+    ObjectType m_top;
  private:
     std::shared_ptr<RuleNode> m_left;
     std::shared_ptr<RuleNode> m_right;

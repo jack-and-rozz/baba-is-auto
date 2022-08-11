@@ -117,13 +117,6 @@ Subj = PreMP NP
 Subj = NP PostMP
 Rule = Subj VP
 
-
-
-
-<parsing中の非文条件>
-- 動詞が2つ以上
-- PreM/PostMが
-
 */
 
 
@@ -171,23 +164,28 @@ ObjectType Rule::GetPredicate() const
 }
 
 
-
-
-RuleNode::RuleNode(ObjectType center)
+RuleNode::RuleNode(ObjectType top)
 {
-    m_center = center;
+    m_top = top;
 }
 
-RuleNode::RuleNode(ObjectType center, RuleNode left, RuleNode right)
+
+RuleNode::RuleNode(ObjectType top, RuleNode left)
 {
-    m_center = center;
+    m_top = top;
+    m_left = std::make_shared<RuleNode>(left);
+}
+
+RuleNode::RuleNode(ObjectType top, RuleNode left, RuleNode right)
+{
+    m_top = top;
     m_left = std::make_shared<RuleNode>(left);
     m_right = std::make_shared<RuleNode>(right);
 }
 
 bool RuleNode::operator==(const ObjectType& type) const
 {
-    return m_center == type;
+    return m_top == type;
 }
 
 
@@ -199,17 +197,82 @@ bool RuleNode::HasTargetType(const ObjectType& type) const
     if (m_right.get() != nullptr){
 	right_result = m_right->HasTargetType(type);
     }
-
-    // check only whether the right node (=VP) contains type.
-    if (m_left.get() != nullptr && m_center != ObjectType::Rule){
+    if (m_left.get() != nullptr && m_top != ObjectType::Rule){
+	// check only whether the right node (=VP) contains type.
 	left_result = m_left->HasTargetType(type);
+    }
+    if (m_right.get() == nullptr && m_left.get() == nullptr){
+	// leaf nodes
+	if (m_top == type){
+	    return true;
+	}
     }
     return left_result || right_result;
 }
 
-bool RuleNode::SatisfyCondition(const Object& obj) const
+bool RuleNode::SatisfyCondition(const Object& obj,  const Map& map) const
 {
-    return false;
+
+    bool left_result = false;
+    bool right_result = false;
+
+    if (m_left.get() != nullptr){
+	left_result = m_left->SatisfyCondition(obj, map);
+    }
+    if (m_right.get() != nullptr){
+	right_result = m_right->SatisfyCondition(obj, map);
+    }
+    //      Rule
+    //   Subj   VP
+    //  NP    Verb NP
+    // Baba   is keke
+
+    // if (m_top == ObjectType::Rule){
+    // 	// check subject.
+    // 	return left_result;
+    // }
+
+    // (A and B) on (C and D) is PUSH
+
+    // memo: NOTはboolのフラグにして毎回nodeの結果を返すときにフラグとXOR取る方が良い？
+    // if (IsNounType(m_top)){
+    // 	return m_top == obj.GetType();
+    // } else if (IsGrammarType(m_top)){
+    // 	if (m_top == ObjectType::Rule){
+    // 	    return left_result;
+    // 	else if (m_top == ObjectType::NP){
+    // 	    ;;
+    // 	} else if (m_top == ObjectType::PreMP){
+    // 	    ;;
+    // 	} else if (m_top == ObjectType::PostMP){ // left-> PostM, right->NP
+    //        //       NP -> left || right
+    //        //   NP (and) NP
+    //        //  KEKE     BABA
+
+    // 	   //      NP -> left ^ right 
+    //        //   NOT   NP
+    //        // NOT NOT  BABA
+
+    // 	    //   POSTMP
+    // 	    // PostM   NP
+    //         // NEAR    WALL
+
+    // 	    ;;
+    // 	} else if (m_top == ObjectType::ON){
+    // 	    baba and keke, obj=baba 
+    // 	    if (left_result == true){
+    // 		on_objs = m_right->GetObjects(); // C, D
+    // 		obj.on(map, on_objs);
+    // 	    }
+    // 	} else if (m_top == ObjectType::LONELY){
+    // 	    return obj.isAlone(map);
+    // 	}
+    // }
+
+    //return left_result;
+    return left_result && right_result;
+
+    //return left_result && right_result;
 }
 
 
