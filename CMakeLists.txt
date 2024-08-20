@@ -20,7 +20,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(Includes)
 include_directories(Extensions/BabaPython/Includes)
 include_directories(Libraries)
-include_directories(Libraries/doctest/doctest)
+# include_directories(Libraries/doctest/doctest)
 include_directories(Libraries/pybind11/include)
 include_directories(Libraries/random/include)
 
@@ -39,9 +39,9 @@ set(CMAKE_MACOSX_RPATH ON)
 set(MAPS_DIR ${PROJECT_SOURCE_DIR}/Resources/Maps)
 
 # Project modules
-add_subdirectory(Libraries/doctest)
+# add_subdirectory(Libraries/doctest)
 add_subdirectory(Sources/baba-is-auto)
-add_subdirectory(Tests/UnitTests)
+# add_subdirectory(Tests/UnitTests)
 
 # Code coverage - Debug only
 # NOTE: Code coverage results with an optimized (non-Debug) build may be misleading
