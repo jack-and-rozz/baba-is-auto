@@ -12,7 +12,6 @@
 namespace baba_is_auto
 {
 
-
 void DbgPrint(std::string title, TypeSequence types)
 {
     std::cout << title << std::endl;
