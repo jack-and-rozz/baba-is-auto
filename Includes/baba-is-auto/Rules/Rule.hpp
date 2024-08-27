@@ -12,6 +12,7 @@
 
 #include <tuple>
 #include <valarray>
+#include <memory>
 
 namespace baba_is_auto
 {
