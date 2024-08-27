@@ -626,8 +626,8 @@ void Game::ResolveAllMoveFlags(){
 	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){
 		Direction dir = itr->GetMoveFlag();
 		if (dir != Direction::NONE){
-		    // std::cout << "ResolveAllMoveFlags" << std::endl;
-		    // std::cout << static_cast<int>(itr->GetType()) << " "
+ 		    // std::cout << "ResolveAllMoveFlags" << std::endl;
+		    // Std::cout << static_cast<int>(itr->GetType()) << " "
 		    // 	      << static_cast<int>(itr->GetId()) << " "
 		    // 	      << x << " "
 		    // 	      << y << " "
