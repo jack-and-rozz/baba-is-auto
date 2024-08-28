@@ -118,19 +118,6 @@ ObjectContainer& Map::GetObjects(std::size_t x, std::size_t y){
 }
 
 
-// bool Map::HasTextType(std::size_t x, std::size_t y) const
-// {
-//     for (auto& obj : At(x, y).GetObjects())
-//     {
-//         if (!IsIconType(obj.GetType()))
-//         {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-
-
 
 
 }  // namespace baba_is_auto

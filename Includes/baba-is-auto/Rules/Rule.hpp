@@ -13,6 +13,8 @@
 #include <tuple>
 #include <valarray>
 #include <memory>
+#include <algorithm>
+
 
 namespace baba_is_auto
 {
@@ -64,15 +66,15 @@ class RuleNode
     RuleNode(ObjectType top, RuleNode left);
     RuleNode(ObjectType top, RuleNode left, RuleNode right);
     bool operator==(const ObjectType& type) const;
-    bool HasTargetType(const ObjectType& type) const;
-    bool SatisfyCondition(const Object& obj, const Map& map) const;
+    //bool HasTargetType(const ObjectType& type) const;
+    bool IsSubjectConditionSatisfied(const Object& obj, const Map& map) const;
     std::shared_ptr<RuleNode> GetSubject() const;
     //std::shared_ptr<RuleNode> GetVerb() const;
     std::shared_ptr<RuleNode> GetPredicate() const;
 
     // rule.HasTargetType(tgtType);
     // rule.SatisfyCondition(obj);
-
+    //TypeSequence RuleNote::DecomposeNPIntoTypes() const;
     ObjectType m_top;
  private:
     std::shared_ptr<RuleNode> m_left;

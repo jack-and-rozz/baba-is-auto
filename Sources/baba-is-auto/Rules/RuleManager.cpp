@@ -25,41 +25,52 @@ void DbgPrint(std::string title, TypeSequence types)
 RuleManager::RuleManager()
 {
     /*
-       <Grammars>
-       NOT = NOT NOT
-       NP = Noun
-       Comp = Property
+      Apply these grammars to a sequence of types from the top till no changes happen.
 
-       NP = NOT NP
-       NP = NP AND NP
+      <Note>
+      - Although NOT applies to PreM when making PreMP (PreM = NOT PreM), it applies to PostMP (PostMP = NOT PostMP). 
+      e.g.) 
+      * NOT LONELY BABA = ((NOT LONELY) BABA)
+      * NOT ON WALL
 
-       Comp = NOT Comp
-       Comp = NP AND Comp
-       Comp = Comp AND NP
-       Comp = Comp AND Comp
+      - (todo) Is it valid that a verb appears more than twice? 
+      e.g., VP = VP AND VP pattern can be like "IS PUSH AND HAS KEKE". But can it be like "IS PUSH AND IS FLOAT"? Need checking. 
 
-       PreM = Pre-Modifier (LONELY)
-       PreM = NOT PreM
-       PreMP = PreM NP
-       PostM = Post-Modifier (ON, NEAR, FACING)
-       PostMP = PostM NP
-       PostMP = NOT PostMP
+      - Parse order: word-conversion -> NOT -> AND
 
-       VP = gen-Verb NP
-       VP = IS Comp
-       VP = IS NP
+      <Grammars>
+      NOT = NOT NOT
+      NP = Noun
+      Comp = Property
 
-       Subj = PreMP PostMP
-       Subj = NP PostMP
-       Subj = PreMP
-       Subj = NP
+      NP = NOT NP
+      NP = NP AND NP
+      
+      Comp = NOT Comp
+      Comp = NP AND Comp
+      Comp = Comp AND NP
+      Comp = Comp AND Comp
 
-       Rule = Subj VP
+      PreM = Pre-Modifier (LONELY)
+      PreM = NOT PreM
+      PreMP = PreM NP
+      PostMP = Post-Modifier (ON, NEAR, FACING) NP
+      PostMP = NOT PostMP
+      PostMP = PostMP AND PostMP
 
-       <memo>
-       - 判定は Noun&Property < NOT < AND < Pre-Modifier <= Post-Modifier < Verb
-       - パースは逆
+      VP = gen-Verb NP
+      VP = IS Comp
+      VP = IS NP
+      VP = VP AND VP
+
+      Subj = PreMP PostMP
+      Subj = NP PostMP
+      Subj = PreMP
+      Subj = NP
+
+      Rule = Subj VP
     */
+
     // NOT = NOT NOT
     {
 	TypeSequence src{ObjectType::NOT, ObjectType::NOT};
@@ -140,12 +151,12 @@ RuleManager::RuleManager()
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
 
-    // PostM = Post-Modifier (この階層要るか？)
-    for (auto& x: GetAllPostModifiers()){
-	TypeSequence src{x};
-	ObjectType tgt = ObjectType::PostM;
-	m_grammars.emplace_back(std::make_tuple(src, tgt));
-    }
+    // // PostM = Post-Modifier (この階層要るか？)
+    // for (auto& x: GetAllPostModifiers()){
+    // 	TypeSequence src{x};
+    // 	ObjectType tgt = ObjectType::PostM;
+    // 	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    // }
 
     // // PostM = NOT PostM
     // {
@@ -154,16 +165,31 @@ RuleManager::RuleManager()
     // 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     // }
 
-    // PostMP = PostM NP
-    {
-	TypeSequence src{ObjectType::PostM, ObjectType::NP};
-	ObjectType tgt = ObjectType::PostMP;
-	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    // // PostMP = PostM NP
+    // {
+    // 	TypeSequence src{ObjectType::PostM, ObjectType::NP};
+    // 	ObjectType tgt = ObjectType::PostMP;
+    // 	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    // }
+
+    // PostMP = Post-Modifier NP
+    for (auto& x: GetAllPostModifiers()){
+    	TypeSequence src{x, ObjectType::NP};
+    	ObjectType tgt = ObjectType::PostMP;
+    	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
+    
 
     // PostMP = NOT PostMP
     {
 	TypeSequence src{ObjectType::NOT, ObjectType::PostMP};
+	ObjectType tgt = ObjectType::PostMP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
+    // PostMP = PostMP AND PostMP
+    {
+	TypeSequence src{ObjectType::PostMP, ObjectType::AND, ObjectType::PostMP};
 	ObjectType tgt = ObjectType::PostMP;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
@@ -185,6 +211,12 @@ RuleManager::RuleManager()
     // VP = IS NP
     {
 	TypeSequence src{ObjectType::IS, ObjectType::NP};
+	ObjectType tgt = ObjectType::VP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+    // VP = VP AND VP
+    {
+	TypeSequence src{ObjectType::VP, ObjectType::AND, ObjectType::VP};
 	ObjectType tgt = ObjectType::VP;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
@@ -350,6 +382,11 @@ std::optional<RuleNode> RuleManager::BuildRuleTree(TypeSequence seq){
 	}
     }
     // Finally, ObjectType::Rule only remains on the top of a tree if it is valid.
+
+    /* 
+       (todo) need validation before returning?
+    */
+
     if (nodes.size() == 1 && nodes.at(0) == ObjectType::Rule){
 	return nodes[0];
     }

@@ -122,6 +122,9 @@ Rule = Subj VP
 
 #include <baba-is-auto/Rules/Rule.hpp>
 
+#include <stdexcept>
+#include <set> // std::multiset
+
 namespace baba_is_auto
 {
 
@@ -191,28 +194,146 @@ bool RuleNode::operator==(const ObjectType& type) const
 }
 
 
-bool RuleNode::HasTargetType(const ObjectType& type) const
-{
-    bool left_result = false;
-    bool right_result = false;
+// bool RuleNode::HasTargetType(const ObjectType& type) const
+// {
+//     bool left_result = false;
+//     bool right_result = false;
 
-    if (m_right.get() != nullptr){
-	right_result = m_right->HasTargetType(type);
-    }
-    if (m_left.get() != nullptr && m_top != ObjectType::Rule){
-	// check only whether the right node (=VP) contains type.
-	left_result = m_left->HasTargetType(type);
-    }
-    if (m_right.get() == nullptr && m_left.get() == nullptr){
-	// leaf nodes
-	if (m_top == type){
-	    return true;
+//     if (m_right.get() != nullptr){
+// 	right_result = m_right->HasTargetType(type);
+//     }
+//     if (m_left.get() != nullptr && m_top != ObjectType::Rule){
+// 	// check only whether the right node (=VP) contains type.
+// 	left_result = m_left->HasTargetType(type);
+//     }
+//     if (m_right.get() == nullptr && m_left.get() == nullptr){
+// 	// leaf nodes
+// 	if (m_top == type){
+// 	    return true;
+// 	}
+//     }
+//     return left_result || right_result;
+// }
+
+TypeSequence RuleNode::Flatten() const
+{
+    TypeSequence left_result;
+    TypeSequence right_result;
+
+    if ((m_left.get() == nullptr) && (m_right.get() == nullptr)){
+	// leaf
+	left_result.emplace_back(m_top);
+    } else {
+	// node
+	if (m_left.get() != nullptr){
+	    left_result = m_left->Flatten();
+	}
+	if (m_right.get() != nullptr){
+	    right_result = m_right->Flatten();
+	    left_result.insert(left_result.end(), 
+			       right_result.begin(), 
+			       right_result.end());
 	}
     }
-    return left_result || right_result;
+    return left_result;
 }
 
-bool RuleNode::SatisfyConditionAsSubject(const Object& obj,  const Map& map) const
+
+bool RuleNode::ParseNOTtoBool() const 
+{
+    // Check if the number of NOT is even (true) or odd (false).
+    if (!std::all_of(vec.begin(), vec.end(), [](ObjectType obj) {
+        return obj == ObjectType::NOT;
+    })) {
+        throw std::runtime_error("This NOT node contains types other than ObjectType::NOT");
+    }
+
+    return Flatten().size() % 2 == 0;
+}
+
+
+TypeSequence RuleNode::ParseNPtoTypes() const 
+{
+
+    TypeSequence result;
+    if (m_top == ObjectType::NP){
+	if (m_left->m_top == ObjectType::NOT){
+	    // NP = NOT NP
+
+	    result = m_right->ParseNPtoTypes(m_right);
+	    if (m_left->ParseNOTtoBool() == false){
+		TypeSequence all_nouns = GetAllNouns();
+		// a.erase(
+		// 	std::remove_if(a.begin(), a.end(), [&b](int value) {
+		// 					       return std::find(b.begin(), b.end(), value) != b.end();
+		// 					   }),
+		// 	a.end()
+		// 	);
+	    }
+
+	} else if (m_left->m_top == ObjectType::NP){
+	    // NP = NP AND NP
+	    TypeSequence left_result;
+	    TypeSequence right_result;
+
+	    left_result = m_left->ParseNPtoTypes(m_left);
+	    right_result = m_right->ParseNPtoTypes(m_right);
+
+	    result.insert(result.end(), 
+			  left_result.begin(), 
+			  left_result.end());
+	    result.insert(result.end(), 
+			  right_result.begin(), 
+			  right_result.end());
+
+	} else {
+	    // NP = Noun
+	    //(todo)
+
+	}
+
+
+    }
+
+    return result;
+}
+
+
+bool IsPreMPConditionSatisfied(const Object& obj,  const Map& map,
+			       const ObjectType& pre_m) const
+{
+    return true; // (WIP)
+
+    if (pre_m == ObjectType::LONELY){
+	;;
+    } else {
+	throw std::runtime_error("This pre-modifier is not implemented");
+    }
+
+}
+
+bool IsPostMPConditionSatisfied(const Object& obj,  const Map& map,
+				const ObjectType& post_m,
+				const TypeSequence& target_nouns) const
+{
+    return true; // (WIP)
+
+    if (post_m == ObjectType::ON){
+	// PostMP = ON NP
+	;;
+    } else if (post_m == ObjectType::NEAR){
+	// PostMP = NEAR NP
+	;;
+    } else if (post_m == ObjectType::FACING){
+	// PostMP = FACING NP
+	;;
+    } else {
+	throw std::runtime_error("This post-modifier is not implemented");
+    }
+
+}
+
+bool RuleNode::IsSubjectConditionSatisfied(const Object& obj,  const Map& map) const
 {
     // Check if the given Object satisfies the condition to be a subject of the rule.
     bool left_result = true;
@@ -225,6 +346,9 @@ bool RuleNode::SatisfyConditionAsSubject(const Object& obj,  const Map& map) con
     	right_result = m_right->SatisfyConditionAsSubject(obj, map);
     }
 
+    /*
+      As NOT node can be a single NOT or a seuqnce of NOT, its boolean can be both true and false.
+     */
     if (m_top == ObjectType::Rule){
 	return left_result;
     } else if (m_top == ObjectType::VP){
@@ -234,20 +358,42 @@ bool RuleNode::SatisfyConditionAsSubject(const Object& obj,  const Map& map) con
     } else if (m_top == ObjectType::PreMP){
 	return left_result && right_result;
     } else if (m_top == ObjectType::PostMP){
-	//(todo)
-	;;
-    } else if (m_top == ObjectType::PreM){
-	if (m_left.get() == ObjectType::NOT){
-	    // PreM = NOT PreM
+       	if (m_left->m_top == ObjectType::NOT){
+	    // PostMP = NOT PostMP
+	    return left_result == right_result;
+	} else if (m_left->m_top == ObjectType::PostMP){
+	    // PostMP = PostMP AND PostMP
 	    return left_result && right_result;
-	} else if (m_left->m_top == ObjectType::LONELY){
+	} else {
+	    // PostMP = (ON, NEAR, FACING) NP
+	    TypeSequence np_types = DecomposeNPIntoTypes(m_right.get());
+	    return IsPostMPConditionSatisfied(obj, map, m_left->m_top, np_types);
+
+	    // if (m_left->m_top == ObjectType::ON){
+	    // 	// PostMP = ON NP
+	    // 	;;
+	    // } else if (m_left->m_top == ObjectType::NEAR){
+	    // 	// PostMP = NEAR NP
+	    // 	;;
+	    // } else if (m_left->m_top == ObjectType::FACING){
+	    // 	// PostMP = FACING NP
+	    // 	;;
+	    // }
+	}
+
+    } else if (m_top == ObjectType::PreM){
+	if (m_left->m_top == ObjectType::NOT){
+	    // PreM = NOT PreM
+	    return left_result == right_result;
+	} else {
 	    // PreM = LONELY
-	    // (todo)
+	    return IsPreMPConditionSatisfied(obj, map, m_left->m_top);
+	    ;;
 	}
     } else if (m_top == ObjectType::NP){
-	if (m_left.get() == ObjectType::NOT){
+	if (m_left->m_top == ObjectType::NOT){
 	    // NP = NOT NP
-	    return left_result && right_result;
+	    return left_result == right_result;
 	} else if (m_left->m_top == ObjectType::NP){
 	    // NP = NP AND NP
 	    return left_result || right_result;
@@ -269,7 +415,6 @@ bool RuleNode::SatisfyConditionAsSubject(const Object& obj,  const Map& map) con
 	    // NOT (x times) + NOT
 	    return !left_result;
 	}
-	;;
     }
     return false;
 
@@ -305,7 +450,7 @@ bool RuleNode::SatisfyConditionAsSubject(const Object& obj,  const Map& map) con
     //        //   NOT   NP
     //        // NOT NOT  BABA
 
-    // 	    //   POSTMP
+    // 	    //   PostMP
     // 	    // PostM   NP
     //         // NEAR    WALL
 
