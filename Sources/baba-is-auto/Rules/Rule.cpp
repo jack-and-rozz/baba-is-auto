@@ -128,47 +128,6 @@ Rule = Subj VP
 namespace baba_is_auto
 {
 
-Rule::Rule(ObjectType type1, ObjectType type2, ObjectType type3)
-{
-    objectTypes = { type1, type2, type3 };
-}
-
-
-bool Rule::IsValid() const {
-    // bool left_valid = m_left == nullptr ? true : m_left.IsValid();
-    // bool right_valid = m_right == nullptr ? true : m_right.IsValid();
-    // return m_is_valid && left_valid && right_valid;
-    return true;
-}
-
-
-bool Rule::operator==(const Rule& rhs) const
-{
-    return objectTypes == rhs.objectTypes;
-}
-
-ObjectType Rule::GetSubject() const
-{
-    // return ObjectType::BABA;
-    // return objectTypes[0];
-    return std::get<0>(objectTypes);
-}
-ObjectType Rule::GetOperator() const
-{
-    // return ObjectType::IS;
-    // return objectTypes[1];
-    return std::get<1>(objectTypes);
-}
-ObjectType Rule::GetPredicate() const
-{
-    // return ObjectType::YOU;
-    // return objectTypes[2];
-    return std::get<2>(objectTypes);
-}
-
-
-// =====================================================
-
 RuleNode::RuleNode(ObjectType top)
 {
     m_top = top;
@@ -215,8 +174,26 @@ bool RuleNode::operator==(const ObjectType& type) const
 //     return left_result || right_result;
 // }
 
-TypeSequence RuleNode::Flatten() const
+
+
+const RuleNode& RuleNode::GetSubject() const 
 {
+    ;;
+}
+
+ObjectType RuleNode::GetVerb() const 
+{
+    ;;
+}
+
+const RuleNode& RuleNode::GetPredicate() const
+{
+    ;;
+}
+
+TypeSequence RuleNode::GetLeaves() const
+{
+    // Return all leaves.
     TypeSequence left_result;
     TypeSequence right_result;
 
@@ -226,10 +203,10 @@ TypeSequence RuleNode::Flatten() const
     } else {
 	// node
 	if (m_left.get() != nullptr){
-	    left_result = m_left->Flatten();
+	    left_result = m_left->GetLeaves();
 	}
 	if (m_right.get() != nullptr){
-	    right_result = m_right->Flatten();
+	    right_result = m_right->GetLeaves();
 	    left_result.insert(left_result.end(), 
 			       right_result.begin(), 
 			       right_result.end());
@@ -241,6 +218,7 @@ TypeSequence RuleNode::Flatten() const
 
 bool RuleNode::ParseNOTtoBool() const 
 {
+    TypeSequence vec = GetLeaves();
     // Check if the number of NOT is even (true) or odd (false).
     if (!std::all_of(vec.begin(), vec.end(), [](ObjectType obj) {
         return obj == ObjectType::NOT;
@@ -248,7 +226,7 @@ bool RuleNode::ParseNOTtoBool() const
         throw std::runtime_error("This NOT node contains types other than ObjectType::NOT");
     }
 
-    return Flatten().size() % 2 == 0;
+    return vec.size() % 2 == 0;
 }
 
 
@@ -260,7 +238,7 @@ TypeSequence RuleNode::ParseNPtoTypes() const
 	if (m_left->m_top == ObjectType::NOT){
 	    // NP = NOT NP
 
-	    result = m_right->ParseNPtoTypes(m_right);
+	    result = m_right->ParseNPtoTypes();
 	    if (m_left->ParseNOTtoBool() == false){
 		TypeSequence all_nouns = GetAllNouns();
 		// a.erase(
@@ -276,8 +254,8 @@ TypeSequence RuleNode::ParseNPtoTypes() const
 	    TypeSequence left_result;
 	    TypeSequence right_result;
 
-	    left_result = m_left->ParseNPtoTypes(m_left);
-	    right_result = m_right->ParseNPtoTypes(m_right);
+	    left_result = m_left->ParseNPtoTypes();
+	    right_result = m_right->ParseNPtoTypes();
 
 	    result.insert(result.end(), 
 			  left_result.begin(), 
@@ -300,7 +278,7 @@ TypeSequence RuleNode::ParseNPtoTypes() const
 
 
 bool IsPreMPConditionSatisfied(const Object& obj,  const Map& map,
-			       const ObjectType& pre_m) const
+			       const ObjectType& pre_m) 
 {
     return true; // (WIP)
 
@@ -314,7 +292,7 @@ bool IsPreMPConditionSatisfied(const Object& obj,  const Map& map,
 
 bool IsPostMPConditionSatisfied(const Object& obj,  const Map& map,
 				const ObjectType& post_m,
-				const TypeSequence& target_nouns) const
+				const TypeSequence& target_nouns)
 {
     return true; // (WIP)
 
@@ -340,10 +318,10 @@ bool RuleNode::IsSubjectConditionSatisfied(const Object& obj,  const Map& map) c
     bool right_result = true;
 
     if (m_left.get() != nullptr){
-    	left_result = m_left->SatisfyConditionAsSubject(obj, map);
+    	left_result = m_left->IsSubjectConditionSatisfied(obj, map);
     }
     if (m_right.get() != nullptr){
-    	right_result = m_right->SatisfyConditionAsSubject(obj, map);
+    	right_result = m_right->IsSubjectConditionSatisfied(obj, map);
     }
 
     /*
@@ -366,7 +344,7 @@ bool RuleNode::IsSubjectConditionSatisfied(const Object& obj,  const Map& map) c
 	    return left_result && right_result;
 	} else {
 	    // PostMP = (ON, NEAR, FACING) NP
-	    TypeSequence np_types = DecomposeNPIntoTypes(m_right.get());
+	    TypeSequence np_types = m_right->ParseNPtoTypes();
 	    return IsPostMPConditionSatisfied(obj, map, m_left->m_top, np_types);
 
 	    // if (m_left->m_top == ObjectType::ON){
@@ -397,7 +375,7 @@ bool RuleNode::IsSubjectConditionSatisfied(const Object& obj,  const Map& map) c
 	} else if (m_left->m_top == ObjectType::NP){
 	    // NP = NP AND NP
 	    return left_result || right_result;
-	} else if (m_left->m_top == obj->GetType()){
+	} else if (m_left->m_top == obj.GetType()){
 	    // NP = Noun
 	    return true;
 	} else {

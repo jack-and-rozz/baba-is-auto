@@ -559,7 +559,6 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
     TypeSequence seq = longest_seq;
     while (true) {
     	if (seq.size() < 3) break;
-    	//Rule rule = Rule(seq);
 	std::cout << "(x, y, dir) = [" << x << ", " << y << ", " << static_cast<int>(direction) << "]" << std::endl;
     	//Rule rule = Rule(seq[0], seq[1], seq[2]);
 	//BuildRuleTree(seq); // debug for new parsing system (does not affect the game)

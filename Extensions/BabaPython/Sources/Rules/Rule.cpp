@@ -18,11 +18,11 @@ void AddRule(pybind11::module& m)
     //     .def("__eq__",
     //          [](const Rule& left, const Rule& right) { return left == right; });
 
-    pybind11::class_<Rule>(m, "Rule")
+    pybind11::class_<RuleNode>(m, "RuleNode")
         .def(pybind11::init<ObjectType, ObjectType, ObjectType>())
         .def("__eq__",
-             [](const Rule& left, const Rule& right) { return left == right; })
-	.def("GetSubject", &Rule::GetSubject)
-	.def("GetOperator", &Rule::GetOperator)
-	.def("GetPredicate", &Rule::GetPredicate);
+             [](const RuleNode& left, const RuleNode& right) { return left == right; })
+	.def("GetSubject", &RuleNode::GetSubject)
+	.def("GetVerb", &RuleNode::GetVerb)
+	.def("GetPredicate", &RuleNode::GetPredicate);
 }

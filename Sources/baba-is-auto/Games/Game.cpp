@@ -391,54 +391,23 @@ void Game::ProcessIS()
       - (todo) 変化する際に前のobjectを残さないとA is B, A is Cに対応できない
      */
 
-    auto is_noun_rules = m_ruleManager.GetRules(ObjectType::IS);
+    // auto is_noun_rules = m_ruleManager.GetRules(ObjectType::IS);
 
-    for (auto& rule: is_noun_rules){
-	ObjectType subjType = rule.GetSubject();
-	ObjectType predType = rule.GetPredicate();
-	if (IsPropertyType(predType) || rule.GetOperator() != ObjectType::IS) continue;
+    // for (auto& rule: is_noun_rules){
+    // 	ObjectType subjType = rule.GetSubject();
+    // 	ObjectType predType = rule.GetPredicate();
+    // 	if (IsPropertyType(predType) || rule.GetVerb() != ObjectType::IS) continue;
 
-	subjType = (subjType != ObjectType::TEXT) ? ConvertTextToIcon(subjType) : subjType;
-	predType = (predType != ObjectType::TEXT) ? ConvertTextToIcon(predType) : ConvertIconToText(subjType);
+    // 	subjType = (subjType != ObjectType::TEXT) ? ConvertTextToIcon(subjType) : subjType;
+    // 	predType = (predType != ObjectType::TEXT) ? ConvertTextToIcon(predType) : ConvertIconToText(subjType);
 
-	auto obj_ids = FindObjectIdsAndPositionsByType(subjType);
-	for (auto& [obj_id, x, y] : obj_ids){
-	    Object& obj = m_map.GetObject(obj_id, x, y);
-	    obj.SetChangeFlag(predType);
-	}
-    }
-    ResolveAllChangeFlags();
-
-    // auto itr = std::remove_if(m_objects.begin(), m_objects.end(), 
-    // 			      [&](Object x){
-    // 				  return x.GetType() == type; 
-    // 			      }); 
-    // // auto obj_ids = 
-    // for (std::vector<int>:iterator it = std::find_if(v.begin(), v.end(), IsOdd);
-    // 	 it != v.end();
-    // 	 it = std::find_if(++it, v.end(), IsOdd))
-    // 	{
-    // 	    // ...
+    // 	auto obj_ids = FindObjectIdsAndPositionsByType(subjType);
+    // 	for (auto& [obj_id, x, y] : obj_ids){
+    // 	    Object& obj = m_map.GetObject(obj_id, x, y);
+    // 	    obj.SetChangeFlag(predType);
     // 	}
-
-    // auto rules = m_ruleManager.GetRules([&](Rule r){
-    // 					    if (IsNounType(r.GetSubject()) && 
-    // 						r.GetOperator() == ObjectType::IS && 
-    // 						IsNounType(r.GetPredicate()))
-    // 						{
-    // 						    return true;
-    // 						}
-    // 					    else
-    // 						{
-    // 						    return false;
-    // 						}
-    // 					});
-    // for (auto& rule : rules){
-    // 	std::cout << rule.GetSubject() << " "
-    // 		  << rule.GetOperator() << " "
-    // 		  << rule.GetObject() << " "
-    // 		  << std::endl;
     // }
+    ResolveAllChangeFlags();
 
     return;
 }
