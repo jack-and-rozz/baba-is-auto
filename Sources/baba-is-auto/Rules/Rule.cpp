@@ -152,6 +152,38 @@ bool RuleNode::operator==(const ObjectType& type) const
     return m_top == type;
 }
 
+bool RuleNode::operator==(const RuleNode& node) const
+{
+    // First, compare the m_top member
+    if (m_top != node.m_top) {
+        return false;
+    }
+
+    // Compare the left children
+    if (m_left && node.m_left) {
+        // If both left children exist, compare them recursively
+        if (!(*m_left == *node.m_left)) {
+            return false;
+        }
+    } else if (m_left || node.m_left) {
+        // If one exists and the other doesn't, they are not equal
+        return false;
+    }
+
+    // Compare the right children
+    if (m_right && node.m_right) {
+        // If both right children exist, compare them recursively
+        if (!(*m_right == *node.m_right)) {
+            return false;
+        }
+    } else if (m_right || node.m_right) {
+        // If one exists and the other doesn't, they are not equal
+        return false;
+    }
+
+    // All checks passed, the nodes are equal
+    return true;
+}
 
 // bool RuleNode::HasTargetType(const ObjectType& type) const
 // {
@@ -176,20 +208,20 @@ bool RuleNode::operator==(const ObjectType& type) const
 
 
 
-const RuleNode& RuleNode::GetSubject() const 
-{
-    ;;
-}
+// const RuleNode& RuleNode::GetSubject() const 
+// {
+//     ;;
+// }
 
-ObjectType RuleNode::GetVerb() const 
-{
-    ;;
-}
+// ObjectType RuleNode::GetVerb() const 
+// {
+//     ;;
+// }
 
-const RuleNode& RuleNode::GetPredicate() const
-{
-    ;;
-}
+// const RuleNode& RuleNode::GetComplement() const
+// {
+//     ;;
+// }
 
 TypeSequence RuleNode::GetLeaves() const
 {

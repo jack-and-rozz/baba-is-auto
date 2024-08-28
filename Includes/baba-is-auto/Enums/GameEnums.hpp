@@ -163,6 +163,46 @@ enum class Direction
     LEFT,
     RIGHT
 };
+
+
+TypeSequence GetAllNouns()
+{
+    TypeSequence s;
+    int begin = static_cast<int>(ObjectType::NOUN_TYPE) + 1;
+    int end = static_cast<int>(ObjectType::OP_TYPE);
+    for (int i=begin; i<end; ++i){
+	s.emplace_back(static_cast<ObjectType>(i));
+    }
+    return s;
+}
+TypeSequence GetAllProperties()
+{
+    TypeSequence s;
+    int begin = static_cast<int>(ObjectType::PROPERTY_TYPE) + 1;
+    int end = static_cast<int>(ObjectType::ICON_TYPE);
+    for (int i=begin; i<end; ++i){
+	s.emplace_back(static_cast<ObjectType>(i));
+    }
+    return s;
+}
+
+TypeSequence GetAllGenVerbs()
+{
+    TypeSequence s{ObjectType::HAS, ObjectType::MAKE};
+    return s;
+}
+
+TypeSequence GetAllPreModifiers()
+{
+    TypeSequence s{ObjectType::LONELY};
+    return s;
+}
+TypeSequence GetAllPostModifiers()
+{
+    TypeSequence s{ObjectType::ON, ObjectType::NEAR, ObjectType::FACING};
+    return s;
+}
+
 }  // namespace baba_is_auto
 
 #endif  // BABA_IS_AUTO_WORD_ENUMS_HPP

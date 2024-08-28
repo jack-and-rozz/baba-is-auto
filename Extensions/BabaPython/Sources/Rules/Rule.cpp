@@ -22,7 +22,8 @@ void AddRule(pybind11::module& m)
         .def(pybind11::init<ObjectType, ObjectType, ObjectType>())
         .def("__eq__",
              [](const RuleNode& left, const RuleNode& right) { return left == right; })
-	.def("GetSubject", &RuleNode::GetSubject)
-	.def("GetVerb", &RuleNode::GetVerb)
-	.def("GetPredicate", &RuleNode::GetPredicate);
+	.def("GetLeaves", &RuleNode::GetLeaves);
+	// .def("GetSubject", &RuleNode::GetSubject)
+	// .def("GetVerb", &RuleNode::GetVerb)
+	// .def("GetComplement", &RuleNode::GetComplement);
 }

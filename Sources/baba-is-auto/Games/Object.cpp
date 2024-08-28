@@ -150,16 +150,6 @@ ObjectContainer& Square::GetObjects(){
 }
 
 
-// bool Square::HasType(ObjectType type) const
-// {
-//     auto itr = std::find_if(m_objects.begin(), m_objects.end(), 
-// 			    [&](Object x) { 
-// 				return (x.GetType() == type);
-// 			    });
-//     return itr != m_objects.end();
-// }
-
-
 bool Square::HasTextType() const
 {
     for (auto& obj : m_objects)

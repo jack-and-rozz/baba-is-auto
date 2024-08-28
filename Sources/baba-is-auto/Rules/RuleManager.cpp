@@ -28,13 +28,13 @@ RuleManager::RuleManager()
       Apply these grammars to a sequence of types from the top till no changes happen.
 
       <Note>
-      - Although NOT applies to PreM when making PreMP (PreM = NOT PreM), it applies to PostMP (PostMP = NOT PostMP). 
+      - Although NOT applies to PreM when making PreMP (PreM = NOT PreM), it does not apply to PostM but PostMP (PostMP = NOT PostMP). 
       e.g.) 
-      * NOT LONELY BABA = ((NOT LONELY) BABA)
-      * NOT ON WALL
+      * NOT LONELY BABA = (NOT LONELY) BABA
+      * NOT ON WALL = NOT (ON WALL)
 
       - (todo) Is it valid that a verb appears more than twice? 
-      e.g., VP = VP AND VP pattern can be like "IS PUSH AND HAS KEKE". But can it be like "IS PUSH AND IS FLOAT"? Need checking. 
+      e.g., VP = VP AND VP pattern is like "BAB IS PUSH AND HAS KEKE". But "BABA IS PUSH AND IS FLOAT" is valid? Need checking. 
 
       - Parse order: word-conversion -> NOT -> AND
 
@@ -367,11 +367,16 @@ std::optional<RuleNode> RuleManager::BuildRuleTree(TypeSequence seq){
 		} else if (src.size() >= 4) {
 		    throw "Exception : the src length of a grammar must be 1-3.\n";
 		}
-		if (src.size() == 1){
-		    RuleNode new_node = RuleNode(tgt, sliced.at(left_idx));
-		} else {
-		    RuleNode new_node = RuleNode(tgt, sliced.at(left_idx), sliced.at(right_idx));
-		}
+		//RuleNode new_node;
+		// if (src.size() == 1){
+		//     RuleNode new_node = RuleNode(tgt, sliced.at(left_idx));
+		// } else {
+		//     RuleNode new_node = RuleNode(tgt, sliced.at(left_idx), sliced.at(right_idx));
+		// }
+		RuleNode new_node = (src.size() == 1)
+		    ? RuleNode(tgt, sliced.at(left_idx))
+		    : RuleNode(tgt, sliced.at(left_idx), sliced.at(right_idx));
+
 		nodes = UpdateNodes(nodes, new_node, i, i+src.size());
 		std::cout << "<Next Nodes>" << std::endl; 
 		PrintNodeList(i, nodes);
@@ -438,16 +443,17 @@ std::vector<RuleNode> RuleManager::GetRules(ObjectType type) const
 {
     std::vector<RuleNode> ret;
 
-    for (auto& rule : m_rules)
-    {
-        if ((rule.GetSubject() == type) ||
-            (rule.GetOperator() == type) ||
-	    (rule.GetPredicate() == type))
-        {
-            ret.emplace_back(rule);
-        }
-    }
-
+    // for (auto& rule : m_rules)
+    // {
+    //     if ((rule.GetSubject() == type) ||
+    //         (rule.GetVerbs() == type) ||
+    // 	    (rule.GetComplement() == type))
+    //     {
+    //         ret.emplace_back(rule);
+    //     }
+    // }
+    
+    // (todo)
     return ret;
 }
 
@@ -467,24 +473,17 @@ bool RuleManager::HasType(const Object& obj, const Map& map, ObjectType tgtType)
 	return true;
     }
 
-    for (auto& rule : m_rules){
-	if (IsPropertyType(tgtType)){
-	    if ((rule.GetSubject() == objType) &&
-		(rule.GetOperator() == ObjectType::IS) &&
-		(rule.GetPredicate() == tgtType)){
-		return true;
-	    }
-	}
-	// rule.HasTargetType(tgtType);
-	// rule.SatisfyCondition(obj, map);
+    // for (auto& rule : m_rules){
+    // 	// if (IsPropertyType(tgtType)){
+    // 	//     if ((rule.GetSubject() == objType) &&
+    // 	// 	(rule.GetOperator() == ObjectType::IS) &&
+    // 	// 	(rule.GetPredicate() == tgtType)){
+    // 	// 	return true;
+    // 	//     }
+    // 	// }
 
-	// else if (IsVerbType(tgtType)) {
-	//     if ((rule.GetSubject() == objType) &&
-	// 	(rule.GetOperator() == tgtType)){
-	// 	return true;
-	//     }
-	// }
-    }
+    // }
+
     return false;
 }
 
@@ -585,43 +584,6 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
     return;
 }
 
-TypeSequence RuleManager::GetAllNouns()
-{
-    TypeSequence s;
-    int begin = static_cast<int>(ObjectType::NOUN_TYPE) + 1;
-    int end = static_cast<int>(ObjectType::OP_TYPE);
-    for (int i=begin; i<end; ++i){
-	s.emplace_back(static_cast<ObjectType>(i));
-    }
-    return s;
-}
-TypeSequence RuleManager::GetAllProperties()
-{
-    TypeSequence s;
-    int begin = static_cast<int>(ObjectType::PROPERTY_TYPE) + 1;
-    int end = static_cast<int>(ObjectType::ICON_TYPE);
-    for (int i=begin; i<end; ++i){
-	s.emplace_back(static_cast<ObjectType>(i));
-    }
-    return s;
-}
-
-TypeSequence RuleManager::GetAllGenVerbs()
-{
-    TypeSequence s{ObjectType::HAS, ObjectType::MAKE};
-    return s;
-}
-
-TypeSequence RuleManager::GetAllPreModifiers()
-{
-    TypeSequence s{ObjectType::LONELY};
-    return s;
-}
-TypeSequence RuleManager::GetAllPostModifiers()
-{
-    TypeSequence s{ObjectType::ON, ObjectType::NEAR, ObjectType::FACING};
-    return s;
-}
 
 
 

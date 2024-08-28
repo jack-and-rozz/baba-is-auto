@@ -46,7 +46,6 @@ class RuleManager
     //! \param type The object type to find a rule.
     //! \return A list of rules that has specific type.
     std::vector<RuleNode> GetRules(ObjectType type) const;
-    //std::vector<Rule> GetRules(std::function<bool(Rule)> fn) const;
     std::vector<RuleNode> GetAllRules() const;
 
     //! Gets the number of rules.
@@ -65,11 +64,11 @@ class RuleManager
  private:
     std::vector<RuleNode> m_rules;
     std::vector<Grammar> m_grammars;
-    TypeSequence GetAllNouns();
-    TypeSequence GetAllGenVerbs();
-    TypeSequence GetAllProperties();
-    TypeSequence GetAllPreModifiers();
-    TypeSequence GetAllPostModifiers();
+    // TypeSequence GetAllNouns();
+    // TypeSequence GetAllGenVerbs();
+    // TypeSequence GetAllProperties();
+    // TypeSequence GetAllPreModifiers();
+    // TypeSequence GetAllPostModifiers();
 };
     void DbgPrint(std::string title, TypeSequence types);
 }  // namespace baba_is_auto

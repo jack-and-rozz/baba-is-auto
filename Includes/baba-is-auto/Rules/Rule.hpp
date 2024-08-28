@@ -27,11 +27,14 @@ class RuleNode
     RuleNode(ObjectType top, RuleNode left);
     RuleNode(ObjectType top, RuleNode left, RuleNode right);
     bool operator==(const ObjectType& type) const;
+    bool operator==(const RuleNode& node) const;
     //bool HasTargetType(const ObjectType& type) const;
     bool IsSubjectConditionSatisfied(const Object& obj, const Map& map) const;
-    const RuleNode& GetSubject() const;
-    ObjectType GetVerb() const;
-    const RuleNode& GetPredicate() const;
+
+    // const RuleNode& GetSubject() const;
+    // ObjectType GetVerbs() const;
+    // const RuleNode& GetComplement() const;
+
     TypeSequence GetLeaves() const;
     TypeSequence ParseNPtoTypes() const;
 
