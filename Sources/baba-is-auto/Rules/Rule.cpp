@@ -116,7 +116,7 @@ Subj = PreMP NP PostMP
 Subj = PreMP NP
 Subj = NP PostMP
 Rule = Subj VP
-
+↑は旧バージョン。RuleManager.cppを参照
 */
 
 
@@ -164,6 +164,8 @@ ObjectType Rule::GetPredicate() const
 }
 
 
+// =====================================================
+
 RuleNode::RuleNode(ObjectType top)
 {
     m_top = top;
@@ -210,18 +212,68 @@ bool RuleNode::HasTargetType(const ObjectType& type) const
     return left_result || right_result;
 }
 
-bool RuleNode::SatisfyCondition(const Object& obj,  const Map& map) const
+bool RuleNode::SatisfyConditionAsSubject(const Object& obj,  const Map& map) const
 {
-
-    bool left_result = false;
-    bool right_result = false;
+    // Check if the given Object satisfies the condition to be a subject of the rule.
+    bool left_result = true;
+    bool right_result = true;
 
     if (m_left.get() != nullptr){
-	left_result = m_left->SatisfyCondition(obj, map);
+    	left_result = m_left->SatisfyConditionAsSubject(obj, map);
     }
     if (m_right.get() != nullptr){
-	right_result = m_right->SatisfyCondition(obj, map);
+    	right_result = m_right->SatisfyConditionAsSubject(obj, map);
     }
+
+    if (m_top == ObjectType::Rule){
+	return left_result;
+    } else if (m_top == ObjectType::VP){
+	return true;
+    } else if (m_top == ObjectType::Subj){
+	return left_result && right_result;
+    } else if (m_top == ObjectType::PreMP){
+	return left_result && right_result;
+    } else if (m_top == ObjectType::PostMP){
+	//(todo)
+	;;
+    } else if (m_top == ObjectType::PreM){
+	if (m_left.get() == ObjectType::NOT){
+	    // PreM = NOT PreM
+	    return left_result && right_result;
+	} else if (m_left->m_top == ObjectType::LONELY){
+	    // PreM = LONELY
+	    // (todo)
+	}
+    } else if (m_top == ObjectType::NP){
+	if (m_left.get() == ObjectType::NOT){
+	    // NP = NOT NP
+	    return left_result && right_result;
+	} else if (m_left->m_top == ObjectType::NP){
+	    // NP = NP AND NP
+	    return left_result || right_result;
+	} else if (m_left->m_top == obj->GetType()){
+	    // NP = Noun
+	    return true;
+	} else {
+	    return false;
+	}
+    } else if (m_top == ObjectType::NOT){
+	// e.g.)
+	//      not
+	//   not    not
+	// not not
+	if (m_left.get() == nullptr){
+	    // NOT (leaf)
+	    return false;
+	} else {
+	    // NOT (x times) + NOT
+	    return !left_result;
+	}
+	;;
+    }
+    return false;
+
+
     //      Rule
     //   Subj   VP
     //  NP    Verb NP
@@ -270,7 +322,7 @@ bool RuleNode::SatisfyCondition(const Object& obj,  const Map& map) const
     // }
 
     //return left_result;
-    return left_result && right_result;
+    // return left_result && right_result;
 
     //return left_result && right_result;
 }

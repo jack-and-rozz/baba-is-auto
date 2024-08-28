@@ -42,8 +42,8 @@ RuleManager::RuleManager()
        PreM = NOT PreM
        PreMP = PreM NP
        PostM = Post-Modifier (ON, NEAR, FACING)
-       PostM = NOT PostM
        PostMP = PostM NP
+       PostMP = NOT PostMP
 
        VP = gen-Verb NP
        VP = IS Comp
@@ -140,19 +140,19 @@ RuleManager::RuleManager()
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
 
-    // PostM = Post-Modifier
+    // PostM = Post-Modifier (この階層要るか？)
     for (auto& x: GetAllPostModifiers()){
 	TypeSequence src{x};
 	ObjectType tgt = ObjectType::PostM;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
 
-    // PostM = NOT PostM
-    {
-	TypeSequence src{ObjectType::NOT, ObjectType::PostM};
-	ObjectType tgt = ObjectType::PostM;
-	m_grammars.emplace_back(std::make_tuple(src, tgt));
-    }
+    // // PostM = NOT PostM
+    // {
+    // 	TypeSequence src{ObjectType::NOT, ObjectType::PostM};
+    // 	ObjectType tgt = ObjectType::PostM;
+    // 	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    // }
 
     // PostMP = PostM NP
     {
@@ -160,6 +160,14 @@ RuleManager::RuleManager()
 	ObjectType tgt = ObjectType::PostMP;
 	m_grammars.emplace_back(std::make_tuple(src, tgt));
     }
+
+    // PostMP = NOT PostMP
+    {
+	TypeSequence src{ObjectType::NOT, ObjectType::PostMP};
+	ObjectType tgt = ObjectType::PostMP;
+	m_grammars.emplace_back(std::make_tuple(src, tgt));
+    }
+
 
     // VP = gen-Verb NP
     for (auto& x: GetAllGenVerbs()){
@@ -250,6 +258,15 @@ std::vector<RuleNode> UpdateNodes(std::vector<RuleNode> nodes,
 				  std::size_t cut_start_idx, 
 				  std::size_t cut_end_idx)
 {
+    /*
+      e.g., 
+      nodes = [0,1,2,3,4,5]
+      new_node = [2, 3]
+      cut_start_idx = 2
+      cut_end_idx = 4
+      new_nodes = [0,1] + [new_node] + [4,5] 
+    */
+
     std::vector<RuleNode> new_nodes;
     if (cut_start_idx > 0){
 	std::copy(nodes.begin(), nodes.begin() + cut_start_idx,
@@ -264,7 +281,7 @@ std::vector<RuleNode> UpdateNodes(std::vector<RuleNode> nodes,
 
 }
 
-void RuleManager::BuildRuleTree(TypeSequence seq){
+std::optional<RuleNode> RuleManager::BuildRuleTree(TypeSequence seq){
     /* e.g., 
        not lonely baba and keke near wall is not push and stop
        -> not PreM NP and NP PostM NP is not Comp and Comp
@@ -295,7 +312,9 @@ void RuleManager::BuildRuleTree(TypeSequence seq){
 
 	//while (i <= nodes.size() - src.size()){
 	while (nodes.begin() + i + src.size() <= nodes.end()){
+	    // Slice src from the current sequences of odes.
 	    sliced = std::vector<RuleNode>(nodes.begin() + i, nodes.begin() + i + src.size());
+
 	    // vector::operator== は内部比較で定義済みのRuleNode::operator==を使ってくれない？
 	    //if (sliced == src){
 	    if (std::equal(sliced.cbegin(), sliced.cend(), src.cbegin())){
@@ -310,31 +329,31 @@ void RuleManager::BuildRuleTree(TypeSequence seq){
 		    left_idx = 0;
 		    right_idx = 1;
 		} else if (src.size() == 3){
-		    // sliced.at(1) is 'AND'.
+		    // sliced.at(1) is 'AND' (OR does not exist, so ignored).
 		    left_idx = 0;
 		    right_idx = 2;
 		} else if (src.size() >= 4) {
-		    throw "Exception : the length of src in a grammar is 1, 2, or 3.\n";
+		    throw "Exception : the src length of a grammar must be 1-3.\n";
 		}
 		if (src.size() == 1){
 		    RuleNode new_node = RuleNode(tgt, sliced.at(left_idx));
-		    nodes = UpdateNodes(nodes, new_node, i, i+src.size());
 		} else {
 		    RuleNode new_node = RuleNode(tgt, sliced.at(left_idx), sliced.at(right_idx));
-		    nodes = UpdateNodes(nodes, new_node, i, i+src.size());
 		}
+		nodes = UpdateNodes(nodes, new_node, i, i+src.size());
 		std::cout << "<Next Nodes>" << std::endl; 
 		PrintNodeList(i, nodes);
 	    } else {
+		// Go right if the grammar does not match to the current span.
 		i++;
 	    }
 	}
     }
     // Finally, ObjectType::Rule only remains on the top of a tree if it is valid.
     if (nodes.size() == 1 && nodes.at(0) == ObjectType::Rule){
-	;;
+	return nodes[0];
     }
-    
+    return std::nullopt;
 
     // TypeSequence nouns = GetAllNouns();
     // std::cout << "All nouns" << std::endl;
@@ -345,16 +364,18 @@ void RuleManager::BuildRuleTree(TypeSequence seq){
     // std::cout << std::endl;
 
 
-    return;
+    //return;
 }
 
 
-void RuleManager::AddRule(const Rule& rule)
+//void RuleManager::AddRule(const Rule& rule)
+void RuleManager::AddRule(const RuleNode& rule)
 {
     m_rules.emplace_back(rule);
 }
 
-void RuleManager::RemoveRule(const Rule& rule)
+//void RuleManager::RemoveRule(const Rule& rule)
+void RuleManager::RemoveRule(const RuleNode& rule)
 {
     /*
       Note (letra418): 
@@ -371,14 +392,14 @@ void RuleManager::ClearRules()
     m_rules.clear();
 }
 
-std::vector<Rule> RuleManager::GetAllRules() const
+std::vector<RuleNode> RuleManager::GetAllRules() const
 {
     return m_rules;
 }
 
-std::vector<Rule> RuleManager::GetRules(ObjectType type) const
+std::vector<RuleNode> RuleManager::GetRules(ObjectType type) const
 {
-    std::vector<Rule> ret;
+    std::vector<RuleNode> ret;
 
     for (auto& rule : m_rules)
     {
@@ -503,26 +524,25 @@ void RuleManager::ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirectio
     	if (seq.size() < 3) break;
     	//Rule rule = Rule(seq);
 	std::cout << "(x, y, dir) = [" << x << ", " << y << ", " << static_cast<int>(direction) << "]" << std::endl;
-    	Rule rule = Rule(seq[0], seq[1], seq[2]);
-	BuildRuleTree(seq); // debug for new parsing system
+    	//Rule rule = Rule(seq[0], seq[1], seq[2]);
+	//BuildRuleTree(seq); // debug for new parsing system (does not affect the game)
+	std::optional<RuleNode> rule = BuildRuleTree(seq);
 
-    	if ((direction == RuleDirection::HORIZONTAL) && rule.IsValid()){
+    	if (rule.has_value() && (direction == RuleDirection::HORIZONTAL)){
     	    for (std::size_t xx=x; xx<x+seq.size(); ++xx){
     		map.At(xx, y).isRule = true;
     	    }
-    	    AddRule(rule);
+    	    AddRule(*rule);
     	    break;
     	}
-    	if ((direction == RuleDirection::VERTICAL) && rule.IsValid()){
+    	if (rule.has_value() && (direction == RuleDirection::VERTICAL)){
     	    for (std::size_t yy=y; yy<y+seq.size(); ++yy){
     		map.At(x, yy).isRule = true;
     	    }
-    	    AddRule(rule);
+    	    AddRule(*rule);
     	    break;
     	}
 
-    	// std::slice s(0, seq.size() - 1, 1);
-    	// seq = seq[s];
     	seq = TypeSequence(seq.begin(), seq.end()-1);
     }
 

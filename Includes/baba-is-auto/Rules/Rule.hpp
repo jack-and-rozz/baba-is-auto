@@ -66,6 +66,10 @@ class RuleNode
     bool operator==(const ObjectType& type) const;
     bool HasTargetType(const ObjectType& type) const;
     bool SatisfyCondition(const Object& obj, const Map& map) const;
+    std::shared_ptr<RuleNode> GetSubject() const;
+    //std::shared_ptr<RuleNode> GetVerb() const;
+    std::shared_ptr<RuleNode> GetPredicate() const;
+
     // rule.HasTargetType(tgtType);
     // rule.SatisfyCondition(obj);
 

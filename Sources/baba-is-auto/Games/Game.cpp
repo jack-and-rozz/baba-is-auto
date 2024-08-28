@@ -81,6 +81,7 @@ void Game::MovePlayer(Direction dir)
 
       <ref>
       - https://w.atwiki.jp/babais/pages/42.html#id_12b90dfb
+      - https://steamcommunity.com/sharedfiles/filedetails/?id=1861849340
     */
 
     // ===========================
@@ -109,6 +110,37 @@ void Game::MovePlayer(Direction dir)
     // ===========================
     // 5. Check Won/List
     CheckPlayState();
+}
+
+
+void Game::CheckPlayState() // todo
+{
+    /*
+      Notes (letra418):
+      Strictly, existing no YOU rules or YOU objects does not mean lose.
+    */
+
+    const auto youRules = m_ruleManager.GetRules(ObjectType::YOU);
+    if (youRules.empty())
+    {
+        m_playState = PlayState::LOST;
+        return;
+    }
+
+    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::YOU);
+    if (obj_ids.empty())
+    {
+        m_playState = PlayState::LOST;
+        return;
+    }
+    for (auto& [_, x, y] : obj_ids){
+	auto& objs = m_map.GetObjects(x, y);
+	for (auto & obj: objs){
+	    if (m_ruleManager.HasType(obj, m_map, ObjectType::WIN)){
+		m_playState = PlayState::WON;
+	    }
+	}
+    }
 }
 
 Direction GetReverseDirection(Direction dir){
@@ -353,11 +385,12 @@ void Game::ProcessMOVE()
 
 void Game::ProcessIS()
 {
+    // Here processes only transformation caused by IS. RuleManager handles properties given by IS.
     /*
       memo:
       - (todo) 変化する際に前のobjectを残さないとA is B, A is Cに対応できない
-
      */
+
     auto is_noun_rules = m_ruleManager.GetRules(ObjectType::IS);
 
     for (auto& rule: is_noun_rules){
@@ -467,45 +500,11 @@ bool Game::ProcessDEFEAT()
 
 
 
-
-
-
-
-
-void Game::CheckPlayState() // todo
-{
-    /*
-      Notes (letra418):
-      Strictly, existing no YOU rules or YOU objects does not mean lose.
-    */
-
-    const auto youRules = m_ruleManager.GetRules(ObjectType::YOU);
-    if (youRules.empty())
-    {
-        m_playState = PlayState::LOST;
-        return;
-    }
-
-    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::YOU);
-    if (obj_ids.empty())
-    {
-        m_playState = PlayState::LOST;
-        return;
-    }
-    for (auto& [_, x, y] : obj_ids){
-	auto& objs = m_map.GetObjects(x, y);
-	for (auto & obj: objs){
-	    if (m_ruleManager.HasType(obj, m_map, ObjectType::WIN)){
-		m_playState = PlayState::WON;
-	    }
-	}
-    }
-}
-
-// Instead of returning references to objects, this function returns tuples of (ObjectId, X, Y). This is due to subsequent lost of references caused by memory reallocation of std::vector when an object is moved from a square to another square..
+// Instead of returning references to objects, this function returns tuples of (ObjectId, X, Y). This is due to subsequent lost of references caused by memory reallocation of std::vector when an object is deleted and regenerated when moving from a square to another square..
 std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByType(ObjectType objtype){
+    /*
+    */
     std::vector<PositionalObject> res;
-
     const std::size_t width = m_map.GetWidth();
     const std::size_t height = m_map.GetHeight();
 
@@ -516,17 +515,18 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByType(ObjectType o
 		if (IsIconType(objtype) && (itr->GetType() == objtype)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
 		    res.emplace_back(t);
+		} else if (IsVerbType(objtype) && m_ruleManager.HasType(*itr, m_map, objtype)){
+		    ;; // (todo)
 		} else if (IsPropertyType(objtype) && m_ruleManager.HasType(*itr, m_map, objtype)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
-		    // std::tuple t = std::tie(itr->GetId(), x, y);
 		    res.emplace_back(t);
 		}
 	    }
         }
     }
-
     return res;
 }
+
 
 void Game::SetPushedDirToObjects(std::size_t x, std::size_t y, Direction dir){
     // Recursively add pushed_flag to PUSH objects on squares.

@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <optional>
 
 namespace baba_is_auto
 {
@@ -31,11 +32,12 @@ class RuleManager
     RuleManager();
     //! Adds a rule.
     //! \param rule The rule.
-    void AddRule(const Rule& rule);
+    //void AddRule(const Rule& rule);
+    void AddRule(const RuleNode& rule);
 
     //! Removes a rule.
     //! \param rule The rule.
-    void RemoveRule(const Rule& rule);
+    void RemoveRule(const RuleNode& rule);
 
     //! Clears a list of rules.
     void ClearRules();
@@ -43,9 +45,9 @@ class RuleManager
     //! Gets a list of rules that has specific type.
     //! \param type The object type to find a rule.
     //! \return A list of rules that has specific type.
-    std::vector<Rule> GetRules(ObjectType type) const;
+    std::vector<RuleNode> GetRules(ObjectType type) const;
     //std::vector<Rule> GetRules(std::function<bool(Rule)> fn) const;
-    std::vector<Rule> GetAllRules() const;
+    std::vector<RuleNode> GetAllRules() const;
 
     //! Gets the number of rules.
     //! \return The number of rules.
@@ -59,9 +61,9 @@ class RuleManager
     bool HasType(const Object& obj, const Map& map, ObjectType type) const;
     void ParseRules(Map& map);
     void ParseRule(Map& map, std::size_t x, std::size_t y, RuleDirection direction);
-    void BuildRuleTree(TypeSequence seq);
+    std::optional<RuleNode> BuildRuleTree(TypeSequence seq);
  private:
-    std::vector<Rule> m_rules;
+    std::vector<RuleNode> m_rules;
     std::vector<Grammar> m_grammars;
     TypeSequence GetAllNouns();
     TypeSequence GetAllGenVerbs();

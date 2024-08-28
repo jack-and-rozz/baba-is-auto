@@ -59,7 +59,7 @@ class Game
     void MovePlayer(Direction dir);
 
     // Object& GetObject(std::size_t obj_id, std::size_t x, std::size_t y);
-    std::vector<PositionalObject> FindObjectIdsAndPositionsByType(ObjectType property);
+    std::vector<PositionalObject> FindObjectIdsAndPositionsByType(ObjectType objtype);
 
     int RandInt(int min, int max);
 
