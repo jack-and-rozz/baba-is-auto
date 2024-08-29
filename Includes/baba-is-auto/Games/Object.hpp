@@ -82,7 +82,7 @@ class Object
 };
 
 using ObjectContainer = std::vector<Object>;
-using PositionalObject = std::tuple<ObjectId, size_t, size_t>;
+using PositionalObjectId = std::tuple<ObjectId, size_t, size_t>;
 
 
 // Squareの採用どうするか検討中。。。少なくともGame内で直接操作しないようにしよう

@@ -64,11 +64,13 @@ Square::Square(const Square& sq){
 
 
 void Square::AddObject(const Object& object){
-    std::cout << "<AddObject>" << std::endl;
-    std::cout << "(obj_id, x, y, obj_type) = "
-	      << object.GetId() << " "
-	      << m_x << " " << m_y << " " << static_cast<int>(object.GetType())
-	      << std::endl;
+    // std::cout << "<AddObject>" << std::endl;
+    // std::cout << "(obj_id, x, y, obj_type) = "
+    // 	      << object.GetId() << " "
+    // 	      << m_x << " " << m_y << " " << static_cast<int>(object.GetType())
+    // 	      << std::endl;
+
+
     // <debug>: to check reallocation of std::vector.
     // std::cout << "Capacity: " << m_objects.capacity() << std::endl;
     // std::cout << "m_objects address: " 
@@ -83,40 +85,41 @@ void Square::AddObject(const Object& object){
 }
 
 void Square::RemoveObject(const Object& object){
-    std::cout << "<RemoveObject>" << std::endl;
-    std::cout << "(obj_id, x, y, obj_type) = "
-	      << object.GetId() << " "
-	      << m_x << " " << m_y << " " 
-	      << static_cast<int>(object.GetType())  << " " 
-	      << std::endl;
-	      //<< static_cast<int>(object.GetDirection())
+    // std::cout << "<RemoveObject>" << std::endl;
+    // std::cout << "(obj_id, x, y, obj_type) = "
+    // 	      << object.GetId() << " "
+    // 	      << m_x << " " << m_y << " " 
+    // 	      << static_cast<int>(object.GetType())  << " " 
+    // 	      << std::endl;
+    // 	      //<< static_cast<int>(object.GetDirection())
 
     const auto itr = std::find(m_objects.begin(), m_objects.end(), object);
 
+    // Debug print
     if (itr == m_objects.end()){
-	std::cout << "Exception: the object to be removed is not found in m_objects." << std::endl;
-	std::cout << "Candidate" << std::endl;
+    	std::cout << "Exception: the object to be removed is not found in m_objects." << std::endl;
+    	std::cout << "Candidate" << std::endl;
 
-	for (auto& obj: m_objects){
-	    std::cout << "(obj_id, obj_type, obj_dir) = "
-		      << static_cast<int>(obj.GetId()) 
-		      << " "
-		      << static_cast<int>(obj.GetType()) 
-		      << " "
-		      << static_cast<int>(obj.GetDirection())
-		      << std::endl;
-	}
-	std::cout << "Target Object" << std::endl;
+    	for (auto& obj: m_objects){
+    	    std::cout << "(obj_id, obj_type, obj_dir) = "
+    		      << static_cast<int>(obj.GetId()) 
+    		      << " "
+    		      << static_cast<int>(obj.GetType()) 
+    		      << " "
+    		      << static_cast<int>(obj.GetDirection())
+    		      << std::endl;
+    	}
+    	std::cout << "Target Object" << std::endl;
 
-	std::cout << "(obj_id, obj_type, obj_dir) = "
-		  << static_cast<int>(object.GetId()) 
-		  << " "
-		  << static_cast<int>(object.GetType()) 
-		  << " "
-		  << static_cast<int>(object.GetDirection())
-		  << std::endl;
+    	std::cout << "(obj_id, obj_type, obj_dir) = "
+    		  << static_cast<int>(object.GetId()) 
+    		  << " "
+    		  << static_cast<int>(object.GetType()) 
+    		  << " "
+    		  << static_cast<int>(object.GetDirection())
+    		  << std::endl;
 
-	std::exit(EXIT_FAILURE);
+    	std::exit(EXIT_FAILURE);
     }
 
     m_objects.erase(itr);

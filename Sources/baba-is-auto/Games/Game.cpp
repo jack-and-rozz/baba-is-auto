@@ -52,6 +52,7 @@ int Game::RandInt(int min, int max)
     return rand(mt);
 }
 
+
 Direction Game::SetRandomDirectionToObject(Object& obj){
     Direction dirs[] = {Direction::LEFT,
 			Direction::RIGHT,
@@ -127,7 +128,7 @@ void Game::CheckPlayState() // todo
         return;
     }
 
-    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::YOU);
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
     if (obj_ids.empty())
     {
         m_playState = PlayState::LOST;
@@ -249,7 +250,7 @@ void Game::ProcessYOU(Direction dir)
     if (dir == Direction::NONE) { return; }
     int _x;
     int _y;
-    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::YOU);
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
 
 
     /*
@@ -301,7 +302,7 @@ void Game::ProcessYOU(Direction dir)
 void Game::ProcessSHIFT()
 {
     Direction dir;
-    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::SHIFT);
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::SHIFT);
 
     for (auto& [obj_id, x, y] : obj_ids){
     	Object& obj = m_map.GetObject(obj_id, x, y);
@@ -344,7 +345,7 @@ void Game::ProcessMOVE()
     int _y;
     Direction dir;
     Direction revdir;
-    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::MOVE);
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::MOVE);
 
     for (auto& [obj_id, x, y] : obj_ids){
     	Object& obj = m_map.GetObject(obj_id, x, y);
@@ -401,7 +402,7 @@ void Game::ProcessIS()
     // 	subjType = (subjType != ObjectType::TEXT) ? ConvertTextToIcon(subjType) : subjType;
     // 	predType = (predType != ObjectType::TEXT) ? ConvertTextToIcon(predType) : ConvertIconToText(subjType);
 
-    // 	auto obj_ids = FindObjectIdsAndPositionsByType(subjType);
+    // 	auto obj_ids = FindObjectIdsAndPositionsByProperty(subjType);
     // 	for (auto& [obj_id, x, y] : obj_ids){
     // 	    Object& obj = m_map.GetObject(obj_id, x, y);
     // 	    obj.SetChangeFlag(predType);
@@ -415,7 +416,7 @@ void Game::ProcessIS()
 bool Game::ProcessSINK()
 {
     bool happened = false;
-    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::SINK);
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::SINK);
 
     // All objects on SINK object and itself are removed.
     for (auto& [_, x, y] : obj_ids){
@@ -434,7 +435,7 @@ bool Game::ProcessSINK()
 bool Game::ProcessHOTAndMELT()
 {
     bool happened = false;
-    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::MELT);
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::MELT);
     for (auto& [melt_id, x, y] : obj_ids){
 	auto& meltObj = m_map.GetObject(melt_id, x, y);
 
@@ -452,7 +453,7 @@ bool Game::ProcessHOTAndMELT()
 bool Game::ProcessDEFEAT()
 {
     bool happened = false;
-    auto obj_ids = FindObjectIdsAndPositionsByType(ObjectType::YOU);
+    auto obj_ids = FindObjectIdsAndPositionsByProperty(ObjectType::YOU);
     for (auto& [you_id, x, y] : obj_ids){
 	auto& youObj = m_map.GetObject(you_id, x, y);
 
@@ -470,10 +471,10 @@ bool Game::ProcessDEFEAT()
 
 
 // Instead of returning references to objects, this function returns tuples of (ObjectId, X, Y). This is due to subsequent lost of references caused by memory reallocation of std::vector when an object is deleted and regenerated when moving from a square to another square..
-std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByType(ObjectType objtype){
+std::vector<PositionalObjectId> Game::FindObjectIdsAndPositionsByProperty(ObjectType objtype){
     /*
     */
-    std::vector<PositionalObject> res;
+    std::vector<PositionalObjectId> res;
     const std::size_t width = m_map.GetWidth();
     const std::size_t height = m_map.GetHeight();
 
@@ -484,8 +485,6 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByType(ObjectType o
 		if (IsIconType(objtype) && (itr->GetType() == objtype)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
 		    res.emplace_back(t);
-		} else if (IsVerbType(objtype) && m_ruleManager.HasType(*itr, m_map, objtype)){
-		    ;; // (todo)
 		} else if (IsPropertyType(objtype) && m_ruleManager.HasType(*itr, m_map, objtype)){
 		    std::tuple t = std::make_tuple(itr->GetId(), x, y);
 		    res.emplace_back(t);
@@ -494,6 +493,33 @@ std::vector<PositionalObject> Game::FindObjectIdsAndPositionsByType(ObjectType o
         }
     }
     return res;
+}
+
+inline std::vector<PositionalObjectId> Game::FindObjectIdsAndPositionsByNoun(ObjectType objtype){
+    //
+    return FindObjectIdsAndPositionsByProperty(objtype);
+}
+
+std::vector<std::tuple<PositionalObjectId>, TypeSequence> Game::FindObjectIdsAndPositionsAndTargetsByVerb(ObjectType objtype){
+    std::vector<std::tuple<PositionalObjectId>, TypeSequence> res;
+    const std::size_t width = m_map.GetWidth();
+    const std::size_t height = m_map.GetHeight();
+    if (!IsVerbType(objtype)){
+	throw "Invalid type";
+    }
+
+    for (std::size_t y = 0; y < height; ++y){
+        for (std::size_t x = 0; x < width; ++x){
+	    ObjectContainer& objs = m_map.GetObjects(x, y);
+	    for (auto itr = objs.begin(), e = objs.end(); itr != e; ++itr){ 
+		// std::tuple t = std::make_tuple(itr->GetId(), x, y);
+		// res.emplace_back(t);
+		;;
+	    }
+        }
+    }
+    return res;
+
 }
 
 

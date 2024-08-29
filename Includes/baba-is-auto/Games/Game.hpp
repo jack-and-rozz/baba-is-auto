@@ -59,35 +59,15 @@ class Game
     void MovePlayer(Direction dir);
 
     // Object& GetObject(std::size_t obj_id, std::size_t x, std::size_t y);
-    std::vector<PositionalObject> FindObjectIdsAndPositionsByType(ObjectType objtype);
+    std::vector<PositionalObjectId> FindObjectIdsAndPositionsByProperty(ObjectType property);
+    inline std::vector<PositionalObjectId> FindObjectIdsAndPositionsByNoun(ObjectType noun);
+    std::vector<std::tuple<PositionalObjectId>, TypeSequence> FindObjectIdsAndPositionsAndTargetsByVerb(ObjectType objtype);
+
 
     int RandInt(int min, int max);
 
  private:
-    //! Parses a list of rules.
-    // void ParseRules();
-
-    // //! Parses a rule that satisfies the condition and starts from this (x, y).
-    // //! \param x The x position.
-    // //! \param y The y position.
-    // //! \param direction The direction to check the rule.
-    // void ParseRule(std::size_t x, std::size_t y, RuleDirection direction);
-
-    //! Checks an object can move.
-    //! \param x The x position.
-    //! \param y The y position.
-    //! \param dir The direction to move.
-    //! \return The flag indicates that an object can move.
     bool CanMove(std::size_t x, std::size_t y, Direction dir, const Object& obj) const;
-
-    //! Processes the move of the player.
-    //! \param x The x position.
-    //! \param y The y position.
-    //! \param dir The direction to move.
-    //! \param type The object type to move.
-
-    // void ProcessMoveByYou(std::size_t x, std::size_t y, Direction dir,
-    // 			  Object obj);
 
     void ProcessYOU(Direction dir);
     void ProcessMOVE();
